@@ -179,7 +179,7 @@ boolean ProcessUserInput3D(void) {
     sIKY = min(max(armcontrol.Yaxis, IK_MIN_Y), IK_MAX_Y);    
     sIKZ = min(max(armcontrol.Zaxis, IK_MIN_Z), IK_MAX_Z);
     sIKGA = min(max((armcontrol.W_ang-GA_OFFSET), IK_MIN_GA), IK_MAX_GA);  // Currently in Servo coords..
-    Gripper = min(max(armcontrol.Grip, GRIPPER_MIN), GRIPPER_MAX);
+    Gripper = min(max((armcontrol.Grip+GRIPWM_OFFSET), GRIPPER_MIN), GRIPPER_MAX);
     sDeltaTime = armcontrol.dtime*16;
     
 //  }
