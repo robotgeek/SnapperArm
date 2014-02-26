@@ -25,11 +25,11 @@
 #define IK_MAX_Y  200
 #define IK_MIN_Y  50
 
-#define IK_MAX_Z  250
+#define IK_MAX_Z  225
 #define IK_MIN_Z  20
 
-#define IK_MAX_GA  90
-#define IK_MIN_GA  -90
+#define IK_MAX_GA  30
+#define IK_MIN_GA  -30
 
 // Arm dimensions(mm)
 #define BASE_HGT 88.75      //base height (mm)
@@ -40,7 +40,7 @@
 
 
 // offsets 
-#define GA_OFFSET  0 //subtract this from GA to give us -90 - +90 angle
+#define GA_OFFSET  90 //subtract this from GA to give us -90 - +90 angle
 #define X_OFFSET  512 //offset value for 3D Cart mode on X axis
 
 //////////////////////////////////////////////////////////////////////////////
