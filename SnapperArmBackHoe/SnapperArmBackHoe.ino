@@ -102,6 +102,7 @@ void setup()
   delay(500);
   
   SetServo(sDeltaTime);  // Move servos to defualt positions
+  BackhoeLoop();
 }
 
 
@@ -188,7 +189,7 @@ void SequenceLoop(){
     // SEQUENCE 3
     //###########################################################//
     Serial.println("Moving to Sequence Position 3");  
-    BackhoeSequencingControl(1200, 1500, 1500, 1500, 1500, 2000, 1000);
+    BackhoeSequencingControl(1200, 1500, 1700, 1500, 1500, 2000, 1000);
     //###########################################################//
 
 
@@ -204,7 +205,7 @@ void SequenceLoop(){
     // SEQUENCE 5
     //###########################################################//
     Serial.println("Moving to Sequence Position 5");  
-    BackhoeSequencingControl(1200, 1500, 1500, 1500, 1500, 2000, 1000);
+    BackhoeSequencingControl(1200, 1500, 1200, 1500, 1500, 2000, 1000);
     //###########################################################//
 
   } 

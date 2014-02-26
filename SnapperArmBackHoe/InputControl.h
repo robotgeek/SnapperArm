@@ -34,13 +34,13 @@ int joyGripperVal = 0;  //present value of the gripper rotation knob (analog 4)
 //last calculated values of analog sensors (Mapped values)
 //knob values (base and gripper) will be mapped directly to the servo limits
 //joystick values (shoulder, elbow and wrist) will be mapped from -spd to spd, to faciliate incremental control
-int joyBaseMapped = 0;      //base knob value, mapped from 1-1023 to BASE_MIN-BASE_MAX
-int joyShoulderMapped = 0;  //shoulder joystick value, mapped from 1-1023 to -spd to spd
-int joyElbowMapped = 0;     //elbow joystick value, mapped from 1-1023 to -spd to spd
-int joyWristMapped = 0;     //wrist joystick value, mapped from 1-1023 to -spd to spd
-int joyGripperMapped = 0;   //gripper knob  value, mapped from 1-1023 to GRIPPER_MIN-GRIPPER_MAX
+float joyBaseMapped = 0;      //base knob value, mapped from 1-1023 to BASE_MIN-BASE_MAX
+float joyShoulderMapped = 0;  //shoulder joystick value, mapped from 1-1023 to -spd to spd
+float joyElbowMapped = 0;     //elbow joystick value, mapped from 1-1023 to -spd to spd
+float joyWristMapped = 0;     //wrist joystick value, mapped from 1-1023 to -spd to spd
+float joyGripperMapped = 0;   //gripper knob  value, mapped from 1-1023 to GRIPPER_MIN-GRIPPER_MAX
 
-float spd = 1.00;  //speed modififer, increase this to increase the speed of the movement
+float spd = 10.00;  //speed modififer, increase this to increase the speed of the movement
 
 float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -107,10 +107,10 @@ void ProcessAnalogBackhoe() {
    delay(5);
    
 // Base joint is handled differently depending upon analog control solution. v1.0 Snapper Arms used a rotational knob with direct/absolute control of the base servo, where v1.1 Snapper Arms use an incremental Joystick.    
-        
+//        
 #ifdef v10   
-   joyBaseMapped = mapfloat(joyBaseVal, 1023, 0, BASE_MIN, BASE_MAX);  //Mapping analog knob value to servo PWM signal range
-   Base = joyBaseMapped; //set servo position variable to the mapped value from the knob. Absolute/direct control.
+//   joyBaseMapped = mapfloat(joyBaseVal, 1023, 0, BASE_MIN, BASE_MAX);  //Mapping analog knob value to servo PWM signal range
+ //  Base = joyBaseMapped; //set servo position variable to the mapped value from the knob. Absolute/direct control.
 #endif
 
 #ifdef v11   
