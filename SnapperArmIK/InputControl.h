@@ -24,8 +24,8 @@ uint8_t  g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;
 #define ANALOGGRIP    4  //connected to Rotation Knob / Potentiometer # 1
 
 //generic deadband limits - not all joystics will center at 512, so these limits remove 'drift' from joysticks that are off-center.
-#define DEADBANDLOW 502   //decrease this value if drift occurs, increase it to increase sensitivity around the center position
-#define DEADBANDHIGH 522  //increase this value if drift occurs, decrease it to increase sensitivity around the center position
+#define DEADBANDLOW 492   //decrease this value if drift occurs, increase it to increase sensitivity around the center position
+#define DEADBANDHIGH 532  //increase this value if drift occurs, decrease it to increase sensitivity around the center position
 
  //last read values of analog sensors (Native values, 0-1023)
 int joyXVal = 0;     //present value of the base rotation knob (analog 0)

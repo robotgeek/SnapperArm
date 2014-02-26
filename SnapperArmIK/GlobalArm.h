@@ -24,11 +24,11 @@
 #define IK_MAX_Y  200
 #define IK_MIN_Y  50
 
-#define IK_MAX_Z  250
+#define IK_MAX_Z  225
 #define IK_MIN_Z  20
 
-#define IK_MAX_GA  90
-#define IK_MIN_GA  -90
+#define IK_MAX_GA  30
+#define IK_MIN_GA  -30
 
 // Arm dimensions(mm)
 #define BASE_HGT 88.75      //base height (mm)
@@ -84,35 +84,6 @@ int   Gripper  =1500;    //holds the present position of the gripper servo, star
 float sBase     =1500;    //holds the present position of the Base servo, starts at 1500 (centered)
 
 unsigned int sDeltaTime = 2000;
-
-//=============================================================================
-//=============================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

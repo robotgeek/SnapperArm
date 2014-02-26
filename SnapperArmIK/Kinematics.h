@@ -80,7 +80,6 @@ boolean doArmIK(boolean fCartesian, float x, float y, float z, float grip_angle_
   Shoulder = (ftl(1500.0 - (( shl_angle_d - 90) * 10.55 )));
   Elbow = (ftl(1500.0 + (( elb_angle_d - 90.0 ) * 10.55 )));
   Wrist = (ftl(1500 + ( wri_angle_d  * 10.55 )));
-  //Wrist = WRI_SERVO_ERROR + (Elbow - Shoulder);
   
   //assume success
 //  return = g_bIKStatus = IKS_SUCCESS;
