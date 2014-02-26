@@ -2,6 +2,7 @@
 #define INPUTCONTROL_H
 
 #include "GlobalArm.h"
+#include <Arduino.h>
 
 extern ServoEx    ArmServo[5];
 
@@ -9,9 +10,9 @@ extern ServoEx    ArmServo[5];
 // Global Variables...
 //=============================================================================
 
-//////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // ANALOG INPUT CONFIG  // 
-//////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 //define analog pins that will be connected to the joystick pins
 #define BASE     0  //connected to Horizontal Axis on Joystick # 1
 #define SHOULDER 1  //connected to Vertical Axis on Joystick # 2
@@ -46,7 +47,49 @@ float mapfloat(float x, float in_min, float in_max, float out_min, float out_max
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-//////////////////////////////////////////////////////////////////////////////
+
+//=============================================================================
+//=============================================================================
+
+/******************************************************
+ *  SetServo()
+ *
+ *  This function sets the 5 servos on the snapper arm
+ *  to the 5 positions variables. All servos and
+ *  positions variables are globals 
+ *
+ *  Parameters:
+ *    DeltaTime  - interpolation value in mS
+  *
+ *  Globals Used:
+ *      ArmServo BAS_SERVO
+ *      ArmServo WRI_SERVO
+ *      ArmServo SHL_SERVO
+ *      ArmServo ELB_SERVO
+ *      ArmServo GRI_SERVO
+ *      int Base
+ *      int Wrist
+ *      int Shoulder
+ *      int Elbow
+ *      int Gripper
+ *
+ *  Returns: 
+ *    none
+ ******************************************************/ 
+//===================================================================================================
+// SetServo: Writes Servo Position Solutions
+//===================================================================================================
+void SetServo(unsigned int DeltaTime)
+{
+  ServoGroupMove.start();
+  ArmServo[BAS_SERVO].writeMicroseconds(Base + BAS_SERVO_ERROR);
+  ArmServo[SHL_SERVO].writeMicroseconds(Shoulder + SHL_SERVO_ERROR);
+  ArmServo[ELB_SERVO].writeMicroseconds(Elbow + ELB_SERVO_ERROR);
+  ArmServo[WRI_SERVO].writeMicroseconds(Wrist + WRI_SERVO_ERROR);
+  ArmServo[GRI_SERVO].writeMicroseconds(Gripper + GRI_SERVO_ERROR);
+  ServoGroupMove.commit(DeltaTime);
+}
+
 
 
 //===================================================================================================
@@ -61,7 +104,8 @@ void ProcessAnalogBackhoe() {
    joyElbowVal = analogRead(ELBOW);
    joyWristVal = analogRead(WRIST);
    joyGripperVal = analogRead(GRIPPER);
-    
+   delay(5);
+   
 // Base joint is handled differently depending upon analog control solution. v1.0 Snapper Arms used a rotational knob with direct/absolute control of the base servo, where v1.1 Snapper Arms use an incremental Joystick.    
         
 #ifdef v10   
@@ -170,44 +214,7 @@ void ProcessAnalogBackhoe() {
   }
 
 
-/******************************************************
- *  set_servo()
- *
- *  This function sets the 5 servos on the snapper arm
- *  to the 5 positions variables. All servos and
- *  positions variables are globals 
- *
- *  Parameters:
- *    none
-  *
- *  Globals Used:
- *      ArmServo BAS_SERVO
- *      ArmServo WRI_SERVO
- *      ArmServo SHL_SERVO
- *      ArmServo ELB_SERVO
- *      ArmServo GRI_SERVO
- *      int Base
- *      int Wrist
- *      int Shoulder
- *      int Elbow
- *      int Gripper
- *
- *  Returns: 
- *    none
- ******************************************************/ 
-//===================================================================================================
-// SetServo: Writes Servo Position Solutions
-//===================================================================================================
-void SetServo(unsigned int DeltaTime)
-{
-  ServoGroupMove.start();
-  ArmServo[BAS_SERVO].writeMicroseconds(Base + BAS_SERVO_ERROR);
-  ArmServo[SHL_SERVO].writeMicroseconds(Shoulder + SHL_SERVO_ERROR);
-  ArmServo[ELB_SERVO].writeMicroseconds(Elbow + ELB_SERVO_ERROR);
-  ArmServo[WRI_SERVO].writeMicroseconds(Wrist + WRI_SERVO_ERROR);
-  ArmServo[GRI_SERVO].writeMicroseconds(Gripper + GRI_SERVO_ERROR);
-  ServoGroupMove.commit(DeltaTime);
-}
+
 
 //=============================================================================
 //=============================================================================
