@@ -5,6 +5,12 @@
 // RG Snapper Arm Global Constraints & Work Area Definition
 //=============================================================================
 
+// Original v1.0 Arm using Rotation Knob/Absolute control for Base input. Uncomment next line to use v1.0 code (v11 define must be commented out).
+//#define v10
+
+// Revised v1.1 Arm using Incremental Joystick Lever for Base Input. Uncomment next line to use v1.1 code (v10 define must be commented out)
+#define v11
+
 //////////////////////////////////////////////////////////////////////////////
 // SERVO CONFIG  //
 //////////////////////////////////////////////////////////////////////////////
