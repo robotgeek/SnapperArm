@@ -13,6 +13,19 @@ extern ServoEx    ArmServo[5];
 boolean  g_fArmActive = false;   // Is the arm logically on?
 uint8_t  g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;
 
+//=============================================================================
+// DIGITAL INPUT CONFIG...
+//=============================================================================
+
+// use #define to set the I/O numbers, since these will never change - this saves us memory while the Arduino is running
+#define BUTTON1 2
+#define BUTTON2 4
+
+//variables to hold the current status of the button.(LOW == unpressed, HIGH = pressed)
+int buttonState1 = LOW;         
+int buttonState2 = LOW;          
+
+
 //////////////////////////////////////////////////////////////////////////////
 // ANALOG INPUT CONFIG  // 
 //////////////////////////////////////////////////////////////////////////////

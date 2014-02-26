@@ -83,7 +83,7 @@ int   Gripper  =1500;    //holds the present position of the gripper servo, star
  //present positions of the servos 
 float sBase     =1500;    //holds the present position of the Base servo, starts at 1500 (centered)
 
-unsigned int sDeltaTime = 2000;
+unsigned int sDeltaTime = 3000;
 
 
 

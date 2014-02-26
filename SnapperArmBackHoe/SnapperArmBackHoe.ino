@@ -26,6 +26,11 @@
  *      Analog 3 - Joystick (Vertical)
  *      Analog 4 - Rotation Knob 
  *  
+ *    Digital Inputs
+ *      Digital 2 - Button 1
+ *      Digital 4 - Button 2
+ *
+ *
  *    Use an external power supply and set both PWM jumpers to 'VIN'
  *
  *  CONTROL
@@ -74,7 +79,6 @@
 
 ServoEx    ArmServo[5];
 
-
 //===================================================================================================
 // Setup 
 //====================================================================================================
@@ -87,19 +91,38 @@ void setup()
   ArmServo[WRI_SERVO].attach(9, WRIST_MIN, WRIST_MAX);
   ArmServo[GRI_SERVO].attach(10, GRIPPER_MIN, GRIPPER_MAX);
 
+  // initialize pin 2 on interupt 0
+  attachInterrupt(0, stateChange, CHANGE);  
+  // initialize the pins for the pushbutton as inputs:  
+  pinMode(BUTTON2, INPUT);     
+
+  // send arm to center position, used for error adjustment
+  SetServo(sDeltaTime);  // Move servos to defualt positions
 
   // start serial
   Serial.begin(9600);
   Serial.println("Starting RobotGeek Analog BackHoe Demo");
   delay(500);
-  
-  SetServo(sDeltaTime);  // Move servos to defualt positions
+
   BackhoeLoop();
 }
 
 
 
 void loop(){
+
+  //use digitalRead to store the current state of the pushbutton in one of the 'buttonState' variables
+  buttonState2 = digitalRead(BUTTON2);
+
+  if (buttonState1 == HIGH) 
+  {     
+    //
+    BackhoeLoop();     
+  } 
+  if (buttonState2 == HIGH) 
+  { 
+    SequenceLoop(); 
+  }
 
   int inByte = Serial.read();
 
@@ -120,7 +143,7 @@ void loop(){
 void MenuOptions(){
 
   Serial.println("###########################"); 
-  Serial.println("Please enter option 1-2.");     
+  Serial.println("Please enter option 1-2, or press Button 1 or 2 respectively");     
   Serial.println("1) Start Backhoe Control Mode");        
   Serial.println("2) Start Preprogrammed Sequence Mode");     
   Serial.println("###########################"); 
@@ -129,16 +152,17 @@ void MenuOptions(){
 
 
 void BackhoeLoop(){
-  Serial.println("Backhoe Control Mode Active. Send '1' to exit"); 
+  Serial.println("Backhoe Control Mode Active."); 
+  Serial.println("Send '1' or press Button 1 to pause and return to menu."); 
   do
   {
     //Process analog input from 
     ProcessAnalogBackhoe();
 
   } 
-  while(Serial.available() == 0); 
+  while((Serial.available() == 0) && (buttonState1 == LOW)); 
   Serial.read(); // Read & discard the character that got us out of the loop.
-  //while (Serial.read() != 'stop');
+
   delay(100);
   Serial.println("Exiting Backhoe Control Mode."); 
   Serial.println("Current Joint Position Values:");
@@ -201,9 +225,8 @@ void SequenceLoop(){
     //###########################################################//
 
   } 
-  while(Serial.available() == 0); 
+  while((Serial.available() == 0) && (buttonState1 == LOW)); 
   Serial.read(); // Read & discard the character that got us out of the loop.
-  //while (Serial.read() != 'stop');
   delay(100);
   Serial.println("Pausing Sequencing Mode."); 
   delay(500);
@@ -219,4 +242,8 @@ void BackhoeSequencingControl(int base, int shoulder, int elbow, int wrist, int 
   Gripper = grip;
   SetServo(interpolate);
   delay(interpolate + pause);
+}
+
+void stateChange(){
+  buttonState1 = !buttonState1;
 }

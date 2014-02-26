@@ -25,6 +25,11 @@
  *      Analog 2 - Joystick (Vertical)
  *      Analog 3 - Joystick (Vertical)
  *      Analog 4 - Rotation Knob 
+ *      
+ *    Digital Inputs
+ *      Digital 2 - Button 1
+ *      Digital 4 - Button 2
+ *
  *  
  *    Use an external power supply and set both PWM jumpers to 'VIN'
  *
@@ -98,7 +103,9 @@
 
 ServoEx    ArmServo[5];
 
-
+//===================================================================================================
+// Setup 
+//===================================================================================================
 void setup(){
   // Attach servo and set limits
   ArmServo[BAS_SERVO].attach(3, BASE_MIN, BASE_MAX);
@@ -107,22 +114,40 @@ void setup(){
   ArmServo[WRI_SERVO].attach(9, WRIST_MIN, WRIST_MAX);
   ArmServo[GRI_SERVO].attach(10, GRIPPER_MIN, GRIPPER_MAX);
 
+  // initialize pin 2 on interupt 0
+  attachInterrupt(0, stateChange, CHANGE);  
+  // initialize the pins for the pushbutton as inputs:  
+  pinMode(BUTTON2, INPUT);      
+
   // send arm to default X,Y,Z coord
   doArmIK(true, g_sIKX,g_sIKY,g_sIKZ,g_sIKGA);
   SetServo(sDeltaTime);
-  // send arm to center position, used for error adjustment
-
 
   // start serial
   Serial.begin(9600);
   Serial.println("Starting RobotGeek Analog IK Demo");
   delay(500);
+  
   AnalogControlLoop();
 }
 
 
 void loop(){
 
+  //use digitalRead to store the current state of the pushbutton in one of the 'buttonState' variables
+  buttonState2 = digitalRead(BUTTON2);
+
+  if (buttonState1 == HIGH) 
+  {     
+    //
+    AnalogControlLoop();     
+  } 
+  if (buttonState2 == HIGH) 
+  { 
+    SequenceLoop(); 
+  }
+
+  
   int inByte = Serial.read();
 
   switch (inByte) {
@@ -145,7 +170,7 @@ void loop(){
 void MenuOptions(){
 
   Serial.println("###########################"); 
-  Serial.println("Please enter option 1-2.");     
+  Serial.println("Please enter option 1-2, or press Button 1 or 2 respectively"); 
   Serial.println("1) Start Analog IK Control Mode");        
   Serial.println("2) Start Preprogrammed Sequence Mode");     
   Serial.println("###########################"); 
@@ -154,7 +179,8 @@ void MenuOptions(){
 
 
 void AnalogControlLoop(){
-  Serial.println("Analog IK Control Mode Active. Send '1' to exit"); 
+  Serial.println("Analog IK Control Mode Active.");
+  Serial.println("Send '1' or press Button 1 to pause and return to menu.");   
   do
   {
     //Process analog input from ArmControl, translate to working X,Y,Z,GA Coord
@@ -164,9 +190,9 @@ void AnalogControlLoop(){
     //Set servo positions via sDeltaTime interpolation value (set in UserInput as well)
     SetServo(0);
   } 
-  while(Serial.available() == 0); 
+  while((Serial.available() == 0) && (buttonState1 == LOW)); 
   Serial.read(); // Read & discard the character that got us out of the loop.
-  //while (Serial.read() != 'stop');
+
   delay(100);
   Serial.println("Exiting Analog IK Control Mode."); 
   Serial.println("Current Arm Coordinate Values:");
@@ -185,15 +211,16 @@ void AnalogControlLoop(){
 }
 
 void SequenceLoop(){
-  Serial.println("Sequencing Mode Active. Send '1' to exit"); 
+  Serial.println("Sequencing Mode Active."); 
+  Serial.println("Send '1' or press Button 1 to pause and return to menu.");   
   do
   {
     //###########################################################//
     // SEQUENCE 1
     //###########################################################// 
-    //SequencingControl(X-axis, Y-Axis, Z-axis, Wrist Angle, Gripper, Interpolation, Delay)
+    //IKSequencingControl(X-axis, Y-Axis, Z-axis, Wrist Angle, Gripper, Interpolation, Delay)
     Serial.println("Moving to Sequence Position 1");   
-    SequencingControl(0, 150, 150, 0, 1500, 2000, 1000);
+    IKSequencingControl(0, 150, 150, 0, 1500, 2000, 1000);
     //###########################################################//
 
 
@@ -201,7 +228,7 @@ void SequenceLoop(){
     // SEQUENCE 2
     //###########################################################//
     Serial.println("Moving to Sequence Position 2");  
-    SequencingControl(-100, 150, 150, 0, 1500, 1000, 1000);
+    IKSequencingControl(-100, 150, 150, 0, 1500, 1000, 1000);
     //###########################################################//
 
 
@@ -209,7 +236,7 @@ void SequenceLoop(){
     // SEQUENCE 3
     //###########################################################//
     Serial.println("Moving to Sequence Position 3");  
-    SequencingControl(0, 100, 100, 0, 1500, 3000, 1000);
+    IKSequencingControl(0, 100, 100, 0, 1500, 3000, 1000);
     //###########################################################//
 
 
@@ -217,7 +244,7 @@ void SequenceLoop(){
     // SEQUENCE 4
     //###########################################################//
     Serial.println("Moving to Sequence Position 4");  
-    SequencingControl(100, 150, 200, 0, 1500, 1000, 1000);
+    IKSequencingControl(100, 150, 200, 0, 1500, 1000, 1000);
     //###########################################################//
 
 
@@ -225,13 +252,12 @@ void SequenceLoop(){
     // SEQUENCE 5
     //###########################################################//
     Serial.println("Moving to Sequence Position 5");  
-    SequencingControl(0, 100, 100, -15, 1500, 2000, 1000);
+    IKSequencingControl(0, 100, 100, -15, 1500, 2000, 1000);
     //###########################################################//
 
   } 
-  while(Serial.available() == 0); 
+  while((Serial.available() == 0) && (buttonState1 == LOW)); 
   Serial.read(); // Read & discard the character that got us out of the loop.
-  //while (Serial.read() != 'stop');
   delay(100);
   Serial.println("Pausing Sequencing Mode."); 
   delay(500);
@@ -239,7 +265,7 @@ void SequenceLoop(){
 }
 
 
-void SequencingControl(float X, float Y, float Z, float GA, int grip, int interpolate, int pause){
+void IKSequencingControl(float X, float Y, float Z, float GA, int grip, int interpolate, int pause){
   doArmIK(true, X, Y, Z, GA); 
   Gripper = grip;
   SetServo(interpolate);
@@ -247,7 +273,9 @@ void SequencingControl(float X, float Y, float Z, float GA, int grip, int interp
 }
 
 
-
+void stateChange(){
+  buttonState1 = !buttonState1;
+}
 
 
 
