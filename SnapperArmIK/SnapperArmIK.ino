@@ -1,6 +1,6 @@
 /***********************************************************************************
  *  }--\     RobotGeek Snapper Robotic Arm     /--{
- *      |         Analog Control Code         |
+ *      |       Analog IK Control Code        |
  *   __/                                       \__
  *  |__|                                       |__|
  *
