@@ -117,7 +117,8 @@ void setup(){
   // initialize pin 2 on interupt 0
   attachInterrupt(0, stateChange, CHANGE);  
   // initialize the pins for the pushbutton as inputs:  
-  pinMode(BUTTON2, INPUT);      
+  pinMode(BUTTON1, INPUT);     
+  pinMode(BUTTON2, INPUT);       
 
   // send arm to default X,Y,Z coord
   doArmIK(true, g_sIKX,g_sIKY,g_sIKZ,g_sIKGA);
@@ -135,11 +136,11 @@ void setup(){
 void loop(){
 
   //use digitalRead to store the current state of the pushbutton in one of the 'buttonState' variables
+  buttonState1 = digitalRead(BUTTON1);
   buttonState2 = digitalRead(BUTTON2);
 
   if (buttonState1 == HIGH) 
   {     
-    //
     AnalogControlLoop();     
   } 
   if (buttonState2 == HIGH) 
@@ -147,7 +148,6 @@ void loop(){
     SequenceLoop(); 
   }
 
-  
   int inByte = Serial.read();
 
   switch (inByte) {
@@ -160,9 +160,7 @@ void loop(){
     SequenceLoop(); 
     break;
 
-
   }
-
 }
 
 
@@ -179,18 +177,20 @@ void MenuOptions(){
 
 
 void AnalogControlLoop(){
+  delay(500);
   Serial.println("Analog IK Control Mode Active.");
   Serial.println("Send '1' or press the 'Capture' pushbutton to pause the joysticks and capture the current pose."); 
+  loopbreak = LOW;  
   do
   {
     //Process analog input from ArmControl, translate to working X,Y,Z,GA Coord
     ProcessAnalogInput3D();
-    //Calculate goal positions of servos based on X,Y,Z,GA coord determined by ProcessUserInput3D()
+    //Calculate goal positions of servos based on X,Y,Z,GA coord determined by ProcessUserInput3D()M
     doArmIK(true, sIKX, sIKY, sIKZ, sIKGA); 
     //Set servo positions via sDeltaTime interpolation value (set in UserInput as well)
     SetServo(0);
   } 
-  while((Serial.available() == 0) && (buttonState1 == LOW)); 
+  while((Serial.available() == 0) && (loopbreak == LOW)); 
   Serial.read(); // Read & discard the character that got us out of the loop.
 
   delay(100);
@@ -229,8 +229,10 @@ void AnalogControlLoop(){
 }
 
 void SequenceLoop(){
+  delay(500);
   Serial.println("Sequencing Mode Active."); 
-  Serial.println("Send '1' or press Button 1 to pause and return to menu.");   
+  Serial.println("Send '1' or press Button 1 to pause and return to menu.");
+  loopbreak = LOW;  
   do
   {
     //###########################################################//
@@ -274,7 +276,7 @@ void SequenceLoop(){
     //###########################################################//
 
   } 
-  while((Serial.available() == 0) && (buttonState1 == LOW)); 
+  while((Serial.available() == 0) && (loopbreak == LOW));  
   Serial.read(); // Read & discard the character that got us out of the loop.
   delay(100);
   Serial.println("Pausing Sequencing Mode."); 
@@ -292,8 +294,6 @@ void IKSequencingControl(float X, float Y, float Z, float GA, int grip, int inte
 
 
 void stateChange(){
-  buttonState1 = !buttonState1;
+  loopbreak = HIGH;
 }
-
-
 

@@ -24,7 +24,7 @@ uint8_t  g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;
 //variables to hold the current status of the button.(LOW == unpressed, HIGH = pressed)
 int buttonState1 = LOW;         
 int buttonState2 = LOW;          
-
+boolean   loopbreak = LOW;
 
 //////////////////////////////////////////////////////////////////////////////
 // ANALOG INPUT CONFIG  // 
