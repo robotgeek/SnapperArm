@@ -149,11 +149,9 @@ void MenuOptions(){
   Serial.println("###########################"); 
 }
 
-
-
 void BackhoeLoop(){
   Serial.println("Backhoe Control Mode Active."); 
-  Serial.println("Send '1' or press Button 1 to pause and return to menu."); 
+  Serial.println("Send '1' or press the 'Capture' pushbutton to pause the joysticks and capture the current pose."); 
   do
   {
     //Process analog input from 
@@ -164,18 +162,36 @@ void BackhoeLoop(){
   Serial.read(); // Read & discard the character that got us out of the loop.
 
   delay(100);
+  Serial.println("");
   Serial.println("Exiting Backhoe Control Mode."); 
+  Serial.println("");
   Serial.println("Current Joint Position Values:");
-  Serial.print("Base Joint: ");
+  Serial.print("    Base Joint: ");
   Serial.println(Base, DEC);
-  Serial.print("Shoulder Joint: ");
+  Serial.print("    Shoulder Joint: ");
   Serial.println(Shoulder, DEC);
-  Serial.print("Elbow Joint: ");
+  Serial.print("    Elbow Joint: ");
   Serial.println(Elbow, DEC);
-  Serial.print("Wrist Joint: ");
+  Serial.print("    Wrist Joint: ");
   Serial.println(Wrist, DEC);
-  Serial.print("Gripper Joint: ");
+  Serial.print("    Gripper Joint: ");
   Serial.println(Gripper, DEC);
+  
+  Serial.println("");
+  Serial.println("Sequence Control Code");
+  Serial.print("    BackhoeSequencingControl(");
+  Serial.print(Base, DEC);
+  Serial.print(", ");
+  Serial.print(Shoulder, DEC);
+  Serial.print(", ");
+  Serial.print(Elbow, DEC);
+  Serial.print(", ");
+  Serial.print(Wrist, DEC);
+  Serial.print(", ");
+  Serial.print(Gripper, DEC);
+  Serial.println(",2000,1000); ");
+  Serial.println("");
+
   delay(500);
   MenuOptions();
 }

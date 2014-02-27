@@ -180,7 +180,7 @@ void MenuOptions(){
 
 void AnalogControlLoop(){
   Serial.println("Analog IK Control Mode Active.");
-  Serial.println("Send '1' or press Button 1 to pause and return to menu.");   
+  Serial.println("Send '1' or press the 'Capture' pushbutton to pause the joysticks and capture the current pose."); 
   do
   {
     //Process analog input from ArmControl, translate to working X,Y,Z,GA Coord
@@ -194,18 +194,36 @@ void AnalogControlLoop(){
   Serial.read(); // Read & discard the character that got us out of the loop.
 
   delay(100);
+  Serial.println("");
   Serial.println("Exiting Analog IK Control Mode."); 
+  Serial.println("");
   Serial.println("Current Arm Coordinate Values:");
-  Serial.print("X Axis: ");
+  Serial.print("    X Axis: ");
   Serial.println(g_sIKX, 2);
-  Serial.print("Y Axis: ");
+  Serial.print("    Y Axis: ");
   Serial.println(g_sIKY, 2);
-  Serial.print("Z Axis: ");
+  Serial.print("    Z Axis: ");
   Serial.println(g_sIKZ, 2);
-  Serial.print("Wrist Angle: ");
+  Serial.print("    Wrist Angle: ");
   Serial.println(g_sIKGA, 2);
-  Serial.print("Gripper: ");
+  Serial.print("    Gripper: ");
   Serial.println(Gripper, DEC);
+
+  Serial.println("");
+  Serial.println("Sequence Control Code");
+  Serial.print("    IKSequencingControl(");
+  Serial.print(g_sIKX, 2);
+  Serial.print(", ");
+  Serial.print(g_sIKY, 2);
+  Serial.print(", ");
+  Serial.print(g_sIKZ, 2);
+  Serial.print(", ");
+  Serial.print(g_sIKGA, 2);
+  Serial.print(", ");
+  Serial.print(Gripper, DEC);
+  Serial.println(",2000,1000); ");
+  Serial.println("");
+
   delay(500);
   MenuOptions();
 }
