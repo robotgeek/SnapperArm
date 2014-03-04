@@ -11,7 +11,7 @@ extern ServoEx    ArmServo[5];
 // Global Variables...
 //=============================================================================
 boolean  g_fArmActive = false;   // Is the arm logically on?
-uint8_t  g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;
+
 
 //=============================================================================
 // DIGITAL INPUT CONFIG...
@@ -122,11 +122,11 @@ boolean ProcessAnalogInput3D(void) {
     sIKZ = min(max(g_sIKZ, IK_MIN_Z), IK_MAX_Z);
     sIKGA = min(max(g_sIKGA, IK_MIN_GA), IK_MAX_GA);  // Currently in Servo coords...
     
-      // remember our current IK position
-    g_sIKX = sIKX; 
-    g_sIKY = sIKY;
-    g_sIKZ = sIKZ;
-    g_sIKGA = sIKGA;
+//      // remember our current IK position
+//    g_sIKX = sIKX; 
+//    g_sIKY = sIKY;
+//    g_sIKZ = sIKZ;
+//    g_sIKGA = sIKGA;
 
 
 // IK STATUS CHECK NEEDS TO BE IMPLEMENTED, TODO
