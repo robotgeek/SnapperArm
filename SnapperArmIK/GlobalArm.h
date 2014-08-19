@@ -18,8 +18,8 @@
   //                |
   //
 
-#define IK_MAX_X  150
-#define IK_MIN_X  -150
+#define IK_MAX_X  175
+#define IK_MIN_X  -175
 
 #define IK_MAX_Y  200
 #define IK_MIN_Y  50

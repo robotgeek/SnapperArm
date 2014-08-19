@@ -17,7 +17,7 @@ extern ServoEx    ArmServo[5];
 //variables to hold the current status of the button.(LOW == unpressed, HIGH = pressed)
 int buttonState1 = LOW;         
 int buttonState2 = LOW;         
-
+boolean   loopbreak = LOW;
 
 //=============================================================================
 // ANALOG INPUT CONFIG  // 

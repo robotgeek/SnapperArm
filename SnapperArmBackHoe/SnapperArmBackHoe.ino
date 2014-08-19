@@ -77,7 +77,7 @@
 #include <ServoEx.h>
 #include "InputControl.h"
 
-ServoEx    ArmServo[5];
+ServoEx   ArmServo[5];
 
 //===================================================================================================
 // Setup 
@@ -94,6 +94,7 @@ void setup()
   // initialize pin 2 on interupt 0
   attachInterrupt(0, stateChange, CHANGE);  
   // initialize the pins for the pushbutton as inputs:  
+  pinMode(BUTTON1, INPUT);     
   pinMode(BUTTON2, INPUT);     
 
   // send arm to center position, used for error adjustment
@@ -112,13 +113,12 @@ void setup()
 void loop(){
 
   //use digitalRead to store the current state of the pushbutton in one of the 'buttonState' variables
+  buttonState1 = digitalRead(BUTTON1);
   buttonState2 = digitalRead(BUTTON2);
-
   if (buttonState1 == HIGH) 
   {     
-    //
-    BackhoeLoop();     
-  } 
+    BackhoeLoop();
+  }
   if (buttonState2 == HIGH) 
   { 
     SequenceLoop(); 
@@ -145,20 +145,22 @@ void MenuOptions(){
   Serial.println("###########################"); 
   Serial.println("Please enter option 1-2, or press Button 1 or 2 respectively");     
   Serial.println("1) Start Backhoe Control Mode");        
-  Serial.println("2) Start Preprogrammed Sequence Mode");     
+  Serial.println("2) Start Preprogrammed Sequence Mode");  
   Serial.println("###########################"); 
 }
 
 void BackhoeLoop(){
+  delay(500);
   Serial.println("Backhoe Control Mode Active."); 
   Serial.println("Send '1' or press the 'Capture' pushbutton to pause the joysticks and capture the current pose."); 
+  loopbreak = LOW;  
   do
   {
     //Process analog input from 
     ProcessAnalogBackhoe();
 
   } 
-  while((Serial.available() == 0) && (buttonState1 == LOW)); 
+  while((Serial.available() == 0) && (loopbreak == LOW)); 
   Serial.read(); // Read & discard the character that got us out of the loop.
 
   delay(100);
@@ -197,7 +199,10 @@ void BackhoeLoop(){
 }
 
 void SequenceLoop(){
-  Serial.println("Sequencing Mode Active. Send '1' to exit"); 
+  delay(500);
+  Serial.println("Sequencing Mode Active.");   
+  Serial.println("Send '1' or press Button 1 to pause and return to menu."); 
+  loopbreak = LOW;
   do
   {
     //###########################################################//
@@ -241,7 +246,8 @@ void SequenceLoop(){
     //###########################################################//
 
   } 
-  while((Serial.available() == 0) && (buttonState1 == LOW)); 
+  while((Serial.available() == 0) && (loopbreak == LOW)); 
+//  while(Serial.available() == 0); 
   Serial.read(); // Read & discard the character that got us out of the loop.
   delay(100);
   Serial.println("Pausing Sequencing Mode."); 
@@ -261,5 +267,5 @@ void BackhoeSequencingControl(int base, int shoulder, int elbow, int wrist, int 
 }
 
 void stateChange(){
-  buttonState1 = !buttonState1;
+  loopbreak = HIGH;
 }
