@@ -118,6 +118,7 @@ void setup(){
   attachInterrupt(0, stateChange, CHANGE);  
   // initialize the pins for the pushbutton as inputs:  
   pinMode(BUTTON2, INPUT);      
+  pinMode(11, OUTPUT);      
 
   // send arm to default X,Y,Z coord
   doArmIK(true, g_sIKX,g_sIKY,g_sIKZ,g_sIKGA);

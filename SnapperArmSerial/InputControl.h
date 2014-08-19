@@ -28,6 +28,8 @@ uint8_t  g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;
       else if(armcontrol.ext == 0x20){  //32
         g_bIKMode = IKM_IK3D_CARTESIAN;
 //        MoveArmToHome(); 
+        doArmIK(true, 0, 150, 150, 0); // this is a 'MoveArmToHome()' substitute
+        g_fArmActive = false;
         IDPacket();
       }
       else if(armcontrol.ext == 0x28){  //40
@@ -44,6 +46,12 @@ uint8_t  g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;
       }        
       else if(armcontrol.ext == 0x48){  //72
       // do something
+      }
+
+      else if(armcontrol.ext == 0x60){  //96
+        //putArmToSleep
+        g_fArmActive = false;
+        IDPacket();
       }
 
       else if(armcontrol.ext == 0x70){  //112
@@ -179,7 +187,7 @@ boolean ProcessUserInput3D(void) {
     sIKY = min(max(armcontrol.Yaxis, IK_MIN_Y), IK_MAX_Y);    
     sIKZ = min(max(armcontrol.Zaxis, IK_MIN_Z), IK_MAX_Z);
     sIKGA = min(max((armcontrol.W_ang-GA_OFFSET), IK_MIN_GA), IK_MAX_GA);  // Currently in Servo coords..
-    Gripper = min(max((armcontrol.Grip+GRIPWM_OFFSET), GRIPPER_MIN), GRIPPER_MAX);
+    Gripper = min(max((GRIPWM_OFFSET-armcontrol.Grip), GRIPPER_MIN), GRIPPER_MAX);
     sDeltaTime = armcontrol.dtime*16;
     
 //  }
@@ -267,7 +275,7 @@ void ReportAnalog(unsigned char command, unsigned int value)
 {
   unsigned char AH;
   unsigned char AL;
-  AH = (value & 0xFF00);
+  AH = ((value & 0xFF00) >> 8);
   AL = (value & 0x00FF);
   Serial.write(0xff);
   Serial.write(command);
@@ -289,19 +297,32 @@ void IDPacket()
 
 
 void DigitalOutputs(){
-         // First bit = D1, 2nd bit = D2, etc. 
+        
+        pinMode(2, OUTPUT);
+        pinMode(4, OUTPUT);
+        pinMode(7, OUTPUT);
+        pinMode(8, OUTPUT);
+        pinMode(11, OUTPUT);
+        pinMode(12, OUTPUT);
+        pinMode(13, OUTPUT);
+        
+        int arduinoDIO[] = { 2, 4, 7, 8, 11, 12, 13};
+
+          
         int i;
-        for(i=0;i<7;i++){
-        unsigned char button = (armcontrol.buttons>>i)&0x01;
-        if(button > 0){
-          // button pressed, go high on a pin
-          DDRB |= 0x01<<(i+1);
-          PORTB |= 0x01<<(i+1);
-        }
-        else{
-          DDRB &= 0xff - (0x01<<(i+1));
-          PORTB &= 0xff - (0x01<<(i+1));
-        } 
+        for(i=0;i<7;i++)
+        {
+          unsigned char button = (armcontrol.buttons>>i)&0x01;
+          if(button > 0)
+          {
+            digitalWrite(arduinoDIO[i], HIGH);
+          }
+          else
+          {
+            digitalWrite(arduinoDIO[i], LOW);
+          } 
+          
+          
       } 
 }
 

@@ -97,7 +97,11 @@ void loop(){
   {
       //Read EXT packet to see if we need to switch IK modes or do anything else
       ExtArmState();
+      //process digital outouts
+      DigitalOutputs();
       
+      if(g_fArmActive == true)
+      {
       //Process serial input from ArmControl, translate to working X,Y,Z,GA Coord
       ProcessUserInput3D();
 
@@ -106,6 +110,7 @@ void loop(){
 
       //Set servo positions via sDeltaTime interpolation value (set in UserInput as well)
       SetServo(sDeltaTime);
+      }
   }
  }
  
