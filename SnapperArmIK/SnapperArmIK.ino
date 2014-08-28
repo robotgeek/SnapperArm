@@ -5,10 +5,14 @@
  *  |__|                                       |__|
  *
  *
- *  The following sketch will move each joint of the arm based on analog inputs.
+ *  The following sketch will move the arm to an X/Y/Z coordinate based on the inputs
+ *  from the analog inputs (joysticks and knob). This sketch can also be used to play
+ *  back a pre-programmed sequence.
  *
  *  Snapper Arm Getting Started Guide
- *  http://learn.trossenrobotics.com/33-robotgeek-getting-started-guides/robotgeek-snapper-robot-arm/63-robotgeek-snapper-arm-getting-started-guide
+ *   http://learn.robotgeek.com/getting-started/33-robotgeek-snapper-robot-arm/63-robotgeek-snapper-arm-getting-started-guide.html
+ *  Using the IK Firmware
+ *    http://learn.robotgeek.com/demo-code/demo-code/154-robotgeek-snapper-joystick-inverse-kinematics-demo.html
  *
  *
  *  WIRING
@@ -34,30 +38,16 @@
  *    Use an external power supply and set both PWM jumpers to 'VIN'
  *
  *  CONTROL
- *    Turn the 
+ *      Analog 0 - Joystick - Control the Y Axis (forward/back)
+ *      Analog 1 - Joystick - Control the X Axis (left/right)
+ *      Analog 2 - Joystick - Control the Z Axis (up/down)
+ *      Analog 3 - Joystick - Control the Wrist Angle
+ *      Analog 4 - Rotation Knob - Control the Gripper
+ *    http://learn.robotgeek.com/demo-code/demo-code/154-robotgeek-snapper-joystick-inverse-kinematics-demo.html
+ *
  *
  *
  *  NOTES
- *    ANALOG INPUT MAPPING
- *      This code uses a combination of direct and incremental code for converting 
- *      analog inputs into servo positions
- *    
- *      Direct/Absolute
- *        Absolute positioning is used for the knobs controlling the base and gripper servo.
- *        This means that the value of the knob is mapped directly to the corresponding servo
- *        value. This method is ideal for sensors that stay at static positions such as
- *        knobs and sliders. 
- *    
- *      Incremental
- *        Incremental code is used for the joysticks controlling the shoulder, elbow and
- *        gripper servo. Each joystick value is mapped to a small realtiveley small positive
- *        or negative value. This value is then added to the currrent position of the servo.
- *        The action of slowly moving the joystick away from its center position can slowly 
- *        move each joint of the robot. When the joystick is centered, no movement is made
- *     
- *      The choice for using Direct/Incremental mapping for each joint was made based
- *      on usability, however the code can be modified so that any joint can use
- *      either direct or incremental mapping
  *
  *    SERVO POSITIONS
  *      The servos' positions will be tracked in microseconds, and written to the servos
@@ -83,19 +73,10 @@
  * http://www.micromegacorp.com/downloads/documentation/AN044-Robotic%20Arm.pdf
  * 
  * 
- * //  This code is a Work In Progress and is distributed in the hope that it will be useful,
- * //  but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
- * //  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
- * //  
- * //=============================================================================
- * 
- * Sources used:
- * http://www.circuitsathome.com/mcu/robotic-arm-inverse-kinematics-on-arduino
- * 
- * Application Note 44 - Controlling a Lynx6 Robotic Arm 
- * http://www.micromegacorp.com/appnotes.html
- * http://www.micromegacorp.com/downloads/documentation/AN044-Robotic%20Arm.pdf
- * 
+ *   This code is a Work In Progress and is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ *   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+ *   
  ***********************************************************************************/
 
 #include <ServoEx.h>
@@ -117,13 +98,11 @@ void setup(){
   // initialize pin 2 on interupt 0
   attachInterrupt(0, stateChange, CHANGE);  
   // initialize the pins for the pushbutton as inputs:  
-<<<<<<< HEAD
-  pinMode(BUTTON2, INPUT);      
-  pinMode(11, OUTPUT);      
-=======
+
+
   pinMode(BUTTON1, INPUT);     
   pinMode(BUTTON2, INPUT);       
->>>>>>> FETCH_HEAD
+
 
   // send arm to default X,Y,Z coord
   doArmIK(true, g_sIKX,g_sIKY,g_sIKZ,g_sIKGA);
