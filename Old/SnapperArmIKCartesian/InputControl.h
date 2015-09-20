@@ -113,7 +113,7 @@ boolean ProcessAnalogInput3D(void) {
      
    //Mapping analog joystick value to servo PWM signal range
    joyGripperMapped = mapfloat(joyGripperVal, 0, 1023, GRIPPER_MIN, GRIPPER_MAX);
-   Gripper = joyGripperMapped;//set servo position variable to the mapped value from the knob
+   sGrip = joyGripperMapped;//set servo position variable to the mapped value from the knob
 
    
 //     

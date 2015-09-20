@@ -5,15 +5,16 @@
  *  |__|                                       |__|
  *
  *
- *  The following sketch will move the arm to an X/Y/Z coordinate based on the inputs
- *  from the analog inputs (joysticks and knob). This sketch can also be used to play
- *  back a pre-programmed sequence.
+ *  This sketch can also be used to play  back a pre-programmed sequence that was generated 
+ *  in ArmLink or the IK joystick control code. This code is activated by serial terminal
+ *  or pushbutton.
  *
  *  Snapper Arm Getting Started Guide
- *   http://learn.robotgeek.com/getting-started/33-robotgeek-snapper-robot-arm/63-robotgeek-snapper-arm-getting-started-guide.html
- *  Using the IK Firmware
+ *    http://learn.robotgeek.com/getting-started/33-robotgeek-snapper-robot-arm/63-robotgeek-snapper-arm-getting-started-guide.html
+ *   Playback using Arm Link software
+ *     http://learn.trossenrobotics.com/20-interbotix/robot-arms/143-arm-link-sequence-playback.html
+ *    Using the IK Firmware
  *    http://learn.robotgeek.com/demo-code/demo-code/154-robotgeek-snapper-joystick-inverse-kinematics-demo.html
- *
  *
  *  WIRING
  *    Servos
@@ -21,21 +22,11 @@
  *      Digital I/O 5 - Shoulder Joint - Robot Geek Servo 
  *      Digital I/O 6 - Elbow Joint - Robot Geek Servo 
  *      Digital I/O 9 - Wrist Joint - Robot Geek Servo 
- *      Digital I/O 10 - Gripper Servo - 9g Servo 
- *
- *    Analog Inputs
- *      Analog 0 - Joystick (Horizontal)
- *      Analog 1 - Joystick (Vertical)
- *      Analog 2 - Joystick (Vertical)
- *      Analog 3 - Joystick (Vertical)
- *      Analog 4 - Rotation Knob 
- *      
+ *      Digital I/O 10 - Gripper Servo -  Robot Geek Servo for parrallel gripper, 9g servo for 9g gripper
  *    Digital Inputs
  *      Digital 2 - Button 1
- *      Digital 4 - Button 2
  *
- *  
- 
+ * 
  *
  *
  *  NOTES
@@ -69,6 +60,19 @@
  *   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
  *   
  ***********************************************************************************/
+#define ROBOT_GEEK_9G_GRIPPER 1
+#define ROBOT_GEEK_PARALLEL_GRIPPER 2
+
+//The 9G gripper is the gripper with the small blue 9g servo
+//The Parralle gripper has a full robotgeek servo and paralle rails
+//Uncomment one of the following lines depending on which gripper you are using.
+//#define GRIPPER_TYPE ROBOT_GEEK_9G_GRIPPER
+//#define GRIPPER_TYPE ROBOT_GEEK_PARALLEL_GRIPPER
+
+#ifndef GRIPPER_TYPE
+   #error YOU HAVE TO SELECT THE GRIPPER YOU ARE USING! Uncomment the correct line above for your gripper
+#endif
+
 
 #include <ServoEx.h>
 
@@ -78,7 +82,7 @@
 //armSequence
 #include "armSequence.h"
 
-//set USE_BUTTON to FALSE if you do not have a button attached to the ArbotiX-M
+//set USE_BUTTON to FALSE if you do not have a button attached to the Geekduino
 #define USE_BUTTON true
 
 //set BUTTON TRUE to HIGH for a button with built in pullup resistor like the RobotGeek Pushbutton.
@@ -114,11 +118,14 @@ void setup(){
 
   // send arm to default X,Y,Z coord
   doArmIK(true, g_sIKX,g_sIKY,g_sIKZ,g_sIKGA);
+  MoveArmTo(sBase, sShoulder, sElbow, sWrist, sWristRot, sGrip, sDeltaTime, true);
+
   SetServo(sDeltaTime);
 
   // start serial
   Serial.begin(9600);
-  Serial.println("Starting RobotGeek Analog IK Demo");
+  Serial.println("Starting Playback Demo");
+  Serial.println("Send '1' to start or oush the button to start the playback");
   delay(500);
   
   
@@ -175,26 +182,65 @@ void SetServo(unsigned int DeltaTime)
 }
 
 
-
+/***********************************************************
+ * IKSequencingControl()
+ *    Function used to set parameters for the Arm
+ *
+ * The following variables are named for Cartesian mode -
+ * however the data that will be held/sent will vary based on the current IK mode
+ ****************************************************************************
+ * Variable name | Cartesian Mode | Cylindrcal Mode | Backhoe Mode          |
+ *_______________|________________|_________________|_______________________|
+ *   x           |   x            |   base          |   base joint          |
+ *   y           |   y            |   y             |   shoulder joint      |
+ *   z           |   z            |   z             |   elbow joint         |
+ *   GA          |  wristAngle    |  wristAngle     |   wrist angle joint   |
+ *   gripper     |  gripper       |  gripper        |   gripper joint       |
+ *
+ * interpolate - the amount of time to complete a pose
+ * pause - time ti pause after a pose is completed
+ * enable - setting this to '1' makes the function work. Setting it to '0' bypasses the function. This can be usefull for breaking out of sequences
+ *
+ *
+ **********************************************************/
+ 
 void IKSequencingControl(float X, float Y, float Z, float GA, int grip, int interpolate, int pause, int enable ){
   if(enable == 1)
   {
-    doArmIK(true, X, Y, Z, GA); 
-    Gripper = grip;
+    
+    if(g_bIKMode == IKM_IK3D_CARTESIAN || g_bIKMode == IKM_IK3D_CARTESIAN_90)
+    {
+      
+      doArmIK(true, X, Y, Z, GA); 
+      
+    }
+    else if(g_bIKMode == IKM_CYLINDRICAL || g_bIKMode ==IKM_CYLINDRICAL_90)
+    {  
+      sBase = X;
+      doArmIK(false, X, Y, Z, GA); 
+      
+    }
+    else if(g_bIKMode == IKM_BACKHOE)
+    {
+      sBase = X;
+      sShoulder = Y;
+      sElbow = Z;
+      sWrist = GA;
+      
+    }
+    
+    
+    
+    sGrip = grip;
+    MoveArmTo(sBase, sShoulder, sElbow, sWrist, sWristRot, sGrip, sDeltaTime, true);
     SetServo(interpolate);
     delay(interpolate + pause);
   }
 }
 
-
+//overloaded function to accout for extra empty wrist rotate packet
 void IKSequencingControl(float X, float Y, float Z, float GA, float WR, int grip, int interpolate, int pause, int enable ){
-  if(enable == 1)
-  {
-    doArmIK(true, X, Y, Z, GA); 
-    Gripper = grip;
-    SetServo(interpolate);
-    delay(interpolate + pause);
-  }
+   IKSequencingControl( X, Y, Z, GA,  grip,interpolate,  pause,  enable );
 }
 
 

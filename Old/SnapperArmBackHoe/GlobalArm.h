@@ -11,6 +11,10 @@
 // Revised v1.1 Arm using Incremental Joystick Lever for Base Input. Uncomment next line to use v1.1 code (v10 define must be commented out)
 #define v11
 
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 // SERVO CONFIG  //
 //////////////////////////////////////////////////////////////////////////////
@@ -32,14 +36,26 @@ enum {
 #define ELBOW_MAX     2400
 #define WRIST_MIN     600
 #define WRIST_MAX     2400 
-#define GRIPPER_MIN   900    //full counterclockwise for 9g servo
-#define GRIPPER_MAX   2100   //full clockwise for 9g servo
+
+//mins and maxes depending on gripper type
+#if GRIPPER_TYPE == ROBOT_GEEK_9G_GRIPPER
+  #define GRIPPER_MIN   900    //full counterclockwise for 9g servo
+  #define GRIPPER_MAX   2100   //full clockwise for 9g servo
+#elif GRIPPER_TYPE == ROBOT_GEEK_PARALLEL_GRIPPER
+  #define GRIPPER_MIN   750    //fully closed
+  #define GRIPPER_MAX   2400   //fully open
+#endif
+
+
+
+
+
 
 // Define servo offsets in +/- uS. Adjust if your arm is not centering properly.
 #define BAS_SERVO_ERROR 0 //(+ is CW, - is CCW)
-#define SHL_SERVO_ERROR -50 //(+ is forward, - is backward)
+#define SHL_SERVO_ERROR 0 //(+ is forward, - is backward)
 #define ELB_SERVO_ERROR 0 //(+ is up, - is down)
-#define WRI_SERVO_ERROR -150 //(+ is up, - is down)
+#define WRI_SERVO_ERROR 0 //(+ is up, - is down)
 #define GRI_SERVO_ERROR 0 //(+ is tighten grip, - is loosen grip) 
 
 //present positions of the servos 

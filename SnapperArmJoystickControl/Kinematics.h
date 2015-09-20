@@ -6,7 +6,7 @@
 
 
  boolean g_fServosFree;
- boolean  g_fArmActive;
+ extern boolean  g_fArmActive;
 //////////////////////////////////////////////////////////////////////////////
 // KINEMATICS CONFIG  //
 //////////////////////////////////////////////////////////////////////////////
@@ -50,12 +50,12 @@ float            g_sIKGA =0.00;                  // IK Gripper angle..
 
 //Next IK Values
 float            sIKX  =0.00;                     // Current X value in mm
-float            sIKY  =0.00;                  //
-float            sIKZ  =0.00;
+float            sIKY  =150.00;                  //
+float            sIKZ  =150.00;
 float            sIKGA =0.00;                  // IK Gripper angle..
 
 // Values for current servo values for the different joints
-int             g_sBase ;                // Current Base servo value
+int             g_sBase = 1500 ;                // Current Base servo value
 int             g_sShoulder;            // Current shoulder target 
 int             g_sElbow;               // Current
 int             g_sWrist;               // Current Wrist value
@@ -127,6 +127,7 @@ boolean doArmIK(boolean fCartesian, float x, float y, float z, float grip_angle_
   {
     sBase = (ftl(1500.0 - (( degrees( bas_angle_r )) * 10.55 )));//only set base if we are n cartesian mode
   }
+
   
   sShoulder = (ftl(1500.0 - (( shl_angle_d - 90) * 10.55 )));
   sElbow = (ftl(1500.0 + (( elb_angle_d - 90.0 ) * 10.55 )));

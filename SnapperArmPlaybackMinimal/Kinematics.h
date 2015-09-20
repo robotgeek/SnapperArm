@@ -5,9 +5,24 @@
 #include <Arduino.h>
 
 
+ boolean g_fServosFree;
+ boolean  g_fArmActive;
 //////////////////////////////////////////////////////////////////////////////
 // KINEMATICS CONFIG  //
 //////////////////////////////////////////////////////////////////////////////
+  
+//=============================================================================
+//=============================================================================
+//// IK Modes defined, 0-3
+//
+//#define  IKM_IK3D_CARTESIAN 0
+//#define  IKM_CYLINDRICAL 2
+
+//=============================================================================
+//=============================================================================
+// IK Modes defined, 0-4
+enum {
+  IKM_IK3D_CARTESIAN, IKM_IK3D_CARTESIAN_90, IKM_CYLINDRICAL, IKM_CYLINDRICAL_90, IKM_BACKHOE};
 
 
 // status messages for IK return codes..
@@ -15,9 +30,13 @@ enum {
   IKS_SUCCESS=0, IKS_WARNING, IKS_ERROR};
 
 #define IK_FUDGE            5     // How much a fudge between warning and error
-uint8_t         g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;
+
 
 #define ftl(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))  //float to long conversion
+
+
+byte     g_bIKMode = IKM_IK3D_CARTESIAN;   // Which mode of operation are we in...
+       
 /* pre-calculations */
 float hum_sq = HUMERUS*HUMERUS;
 float uln_sq = ULNA*ULNA;
@@ -35,157 +54,153 @@ float            sIKY  =0.00;                  //
 float            sIKZ  =0.00;
 float            sIKGA =0.00;                  // IK Gripper angle..
 
+// Values for current servo values for the different joints
+int             g_sBase ;                // Current Base servo value
+int             g_sShoulder;            // Current shoulder target 
+int             g_sElbow;               // Current
+int             g_sWrist;               // Current Wrist value
+int             g_sWristRot;            // Current Wrist rotation
+int             g_sGrip;                // Current Grip position
+
+int sBase, sShoulder, sElbow, sWrist, sWristRot, sGrip = 1500;
+
+
+
 ////////////////////////////////////////////////////////////////////////////// 
 
-
 //===================================================================================================
-// Compute Arm IK for 3DOF+Mirrors+Gripper - was based on code by Michael E. Ferguson
-// Hacked up by me, to allow different options...
+// doArmIK: Floating Point Arm IK Solution for PWM Servos
 //===================================================================================================
-uint8_t doArmIK(boolean fCartesian, float sIKX, float sIKY, float sIKZ, float sIKGA)
+/* arm positioning routine utilizing inverse kinematics */
+/* z is height, y is distance from base center out, x is side to side. y,z can only be positive */
+boolean doArmIK(boolean fCartesian, float x, float y, float z, float grip_angle_d)
 {
-  float t;
-  uint8_t bRet = IKS_SUCCESS;  // assume success
-  float base_angle_r;
-
-  if (fCartesian) {
-    // first, make this a 2DOF problem... by solving baseAngle, converting to servo pos
-    base_angle_r = atan2(sIKX, sIKY);
-    // remove gripper offset from base
-    t = sqrt(sq((long)sIKX)+sq((long)sIKY));
-  }
-  else {
-    // We are in cylindrical mode, probably simply set t to the y we passed in...
-    t = sIKY;
-  }
   
+   
+
+  float grip_angle_r = radians( grip_angle_d );    //grip angle in radians for use in calculations
+  /* Base angle and radial distance from x,y coordinates */
+  float bas_angle_r = atan2( x, y );
+  float rdist = sqrt(( x * x ) + ( y * y ));
+
   
-  // convert to sIKX/sIKZ plane, remove wrist, prepare to solve other DOF           
-  float flGripRad = radians(sIKGA);
-  float trueX = t - ((float)GRIPPER*cos(flGripRad));   
-  float trueZ = sIKZ - BASE_HGT - ((float)GRIPPER*sin(flGripRad));
-
-  float im = sqrt(sq(trueX)+sq(trueZ));        // length of imaginary arm
-  float q1 = atan2(trueZ,trueX);              // angle between im and X axis
-  float d1 = sq((float)HUMERUS) - sq(ULNA) + sq((long)im);
-  float d2 = 2*(float)HUMERUS*im;
-  float q2 = acos((float)d1/float(d2));
-  q1 = q1 + q2;
-
-  d1 = sq((float)HUMERUS)-sq(im)+sq((float)ULNA);
-  d2 = 2*(float)ULNA*(float)HUMERUS;
-  q2 = acos((float)d1/(float)d2);
-
-
-  //Use different radians equation for AX servos
-  float sol0 = degrees(base_angle_r);
-  float sol1 = degrees(q1-1.57);
-  float sol2 = degrees(3.14-q2);
-  // solve for wrist angle
-  float sol3 = degrees(3.2 + flGripRad - q1 - q2 );
+  if (fCartesian) 
+  {
+    /* rdist is y coordinate for the arm */
+    y = rdist;
+  }
+  else 
+  {
+    // We are in cylindrical mode, probably simply set y` to the y we passed in...
+    y = y;
+  }
 
 
 
+
+  /* Grip offsets calculated based on grip angle */
+  float grip_off_z = ( sin( grip_angle_r )) * GRIPPER;
+  float grip_off_y = ( cos( grip_angle_r )) * GRIPPER;
+  /* Wrist position */
+  float wrist_z = ( z - grip_off_z ) - BASE_HGT;
+  float wrist_y = y - grip_off_y;
+  /* Shoulder to wrist distance ( AKA sw ) */
+  float s_w = ( wrist_z * wrist_z ) + ( wrist_y * wrist_y );
+  float s_w_sqrt = sqrt( s_w );
+  /* s_w angle to ground */
+  //float a1 = atan2( wrist_y, wrist_z );
+  float a1 = atan2( wrist_z, wrist_y );
+  /* s_w angle to humerus */
+  float a2 = acos((( hum_sq - uln_sq ) + s_w ) / ( 2 * HUMERUS * s_w_sqrt ));
+  /* shoulder angle */
+  float shl_angle_r = a1 + a2;
+  float shl_angle_d = degrees( shl_angle_r );
+  /* elbow angle */
+  float elb_angle_r = acos(( hum_sq + uln_sq - s_w ) / ( 2 * HUMERUS * ULNA ));
+  float elb_angle_d = degrees( elb_angle_r );
+  float elb_angle_dn = -( 180.0 - elb_angle_d );
+  /* wrist angle */
+  float wri_angle_d = ( grip_angle_d - elb_angle_dn ) - shl_angle_d;
+ 
   /* Servo pulses */
-  Base = (ftl(1500.0 - (sol0 * 10.55) ) );
-  Shoulder = (ftl(1500.0 - ( (sol1) * 10.55 )));
-  Elbow = (ftl(1500.0 - ( (sol2 -90) * 10.55 )));
-  Wrist = (ftl(1500 + ( sol3  * 10.55 )));
-  
-//
-//  /* Servo pulses */
-//  Base = (ftl(1500.0 - (sol0 * 10.55) ) );
-//  Shoulder = (ftl(1500.0 - (( sol1 - 90 ) * 10.55 )));
-//  Elbow = (ftl(1500.0 + (( sol2 - 90.0 ) * 10.55 )));
-//  Wrist = (ftl(1500 + ( sol3  * 10.55 )));  
-
-  // Remember our current IK positions
-  g_sIKX = sIKX; 
-  g_sIKY = sIKY;
-  g_sIKZ = sIKZ;
-  g_sIKGA = sIKGA;
-  // Simple test im can not exceed the length of the Shoulder+Elbow joints...
-
-  if (im > (HUMERUS + ULNA)) {
-        Serial.println("IK Error");
-        bRet = IKS_ERROR;  
+  if (fCartesian) 
+  {
+    sBase = (ftl(1500.0 - (( degrees( bas_angle_r )) * 10.55 )));//only set base if we are n cartesian mode
   }
-  else if(im > (HUMERUS + ULNA-IK_FUDGE)) {
-        Serial.println("IK Warning");
-        bRet = IKS_WARNING;  
+  
+  sShoulder = (ftl(1500.0 - (( shl_angle_d - 90) * 10.55 )));
+  sElbow = (ftl(1500.0 + (( elb_angle_d - 90.0 ) * 10.55 )));
+  sWrist = (ftl(1500 + ( wri_angle_d  * 10.55 )));
+  
+  //assume success
+//  return = g_bIKStatus = IKS_SUCCESS;
+}
+
+//=============================================================================
+//=============================================================================
+
+
+
+//===================================================================================================
+// MoveArmTo
+//===================================================================================================
+void MoveArmTo(int sBase, int sShoulder, int sElbow, int sWrist, int sWristRot, int sGrip, int wTime, boolean fWait) {
+
+  
+  // First make sure servos are not free...
+  if (g_fServosFree) {
+    g_fServosFree = false;
+
   }
 
-  return bRet;
+
+
   
+  // Save away the current positions...
+  g_sBase = sBase;
+  g_sShoulder = sShoulder;
+  g_sElbow = sElbow;
+  g_sWrist = sWrist;
+  g_sWristRot = sWristRot;
+  g_sGrip = sGrip;
+
+
+
+  Base = sBase;
+  Shoulder = sShoulder;
+  Elbow = sElbow;
+  Wrist = sWrist;
+  
+  Gripper = sGrip;
+
+
+
+}
+
+//===================================================================================================
+// MoveArmToHome
+//===================================================================================================
+void MoveArmToHome(void) {
+//  if (g_bIKMode != IKM_BACKHOE) {
+    sBase = 1500;
+    sShoulder = 1500;
+    sElbow = 1500;
+    sWrist = 1500;
+    
+    MoveArmTo(sBase, sShoulder, sElbow, sWrist, 512, 256, 2000, true);
+     g_fArmActive = false;
+//  }
+//  else {
+//    g_bIKStatus = IKS_SUCCESS;  // assume sucess soe we will continue to move...
+//    MoveArmTo(2048, 2048, 2048, 2048, 512, 256, 2000, true);
+//  }
 }
 
 
-////===================================================================================================
-//// doArmIK: Floating Point Arm IK Solution for PWM Servos
-////===================================================================================================
-///* arm positioning routine utilizing inverse kinematics */
-///* z is height, y is distance from base center out, x is side to side. y,z can only be positive */
-//uint8_t doArmIK(boolean fCartesian, float x, float y, float z, float grip_angle_d)
-//{
-//  
-//  
-//  uint8_t bRet = IKS_SUCCESS;  // assume success
-//  
-//  float grip_angle_r = radians( grip_angle_d );    //grip angle in radians for use in calculations
-//
-//  /* Base angle and radial distance from x,y coordinates */
-//!  float bas_angle_r = atan2( x, y );
-//  
-//  float rdist = sqrt(( x * x ) + ( y * y ));
-//  /* rdist is y coordinate for the arm */
-//  y = rdist;
-//  /* Grip offsets calculated based on grip angle */
-//  float grip_off_z = ( sin( grip_angle_r )) * GRIPPER;
-//  
-//  float grip_off_y = ( cos( grip_angle_r )) * GRIPPER;
-//  /* Wrist position */
-//  float wrist_z = ( z - grip_off_z ) - BASE_HGT;
-//  float wrist_y = y - grip_off_y;
-//  /* Shoulder to wrist distance ( AKA sw ) */
-//  float s_w = ( wrist_z * wrist_z ) + ( wrist_y * wrist_y );
-//  float s_w_sqrt = sqrt( s_w );
-//  /* s_w angle to ground */
-//  //float a1 = atan2( wrist_y, wrist_z );
-//  float a1 = atan2( wrist_z, wrist_y );
-//  /* s_w angle to humerus */
-//  float a2 = acos((( hum_sq - uln_sq ) + s_w ) / ( 2 * HUMERUS * s_w_sqrt ));
-//  /* shoulder angle */
-//  float shl_angle_r = a1 + a2;
-//  float shl_angle_d = degrees( shl_angle_r );
-//  /* elbow angle */
-//  float elb_angle_r = acos(( hum_sq + uln_sq - s_w ) / ( 2 * HUMERUS * ULNA ));
-//  float elb_angle_d = degrees( elb_angle_r );
-//  float elb_angle_dn = -( 180.0 - elb_angle_d );
-//  /* wrist angle */
-//  float wri_angle_d = ( grip_angle_d - elb_angle_dn ) - shl_angle_d;
-//
-//  /* Servo pulses */
-//  Base = (ftl(1500.0 - (( degrees( bas_angle_r )) * 10.55 )));
-//  Shoulder = (ftl(1500.0 - (( shl_angle_d - 90) * 10.55 )));
-//  Elbow = (ftl(1500.0 + (( elb_angle_d - 90.0 ) * 10.55 )));
-//  Wrist = (ftl(1500 + ( wri_angle_d  * 10.55 )));
-//
-//
-//  if (rdist > (HUMERUS + ULNA)) {
-//    bRet = IKS_ERROR; 
-//    Serial.println("IK Error");
-//    Serial.println(".");
-//  }
-//  else if (rdist > (HUMERUS + ULNA - IK_FUDGE)){
-//    bRet = IKS_WARNING;
-//    Serial.println("IK Warning");
-//    Serial.println(".");
-//  }
-//  return bRet;
-//}
 
-//=============================================================================
-//=============================================================================
+
 #endif
+
+
 
 

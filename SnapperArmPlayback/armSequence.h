@@ -1,3 +1,7 @@
+//Arm 5
+//Sequence 3
+//Mode 1
+//Orientation 1
 #include "Kinematics.h"
 #include "GlobalArm.h"
 extern void IKSequencingControl(float X, float Y, float Z, float GA, float WR, int grip, int interpolate, int pause, int enable);
@@ -12,7 +16,7 @@ void playSequence()
   Serial.println("Sequencing Mode Active."); 
   Serial.println("Press Pushbutton  to stop");
   playState = 1;  //set playState to 1 as the sequence is now playing
-    //g_bIKMode = IKM_IK3D_CARTESIAN;
+    g_bIKMode = IKM_IK3D_CARTESIAN;
     //###########################################################//
     // SEQUENCE 1
     //###########################################################// 
