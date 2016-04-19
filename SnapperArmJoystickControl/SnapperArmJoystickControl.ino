@@ -135,7 +135,7 @@ void setup(){
 
   if(digitalRead(BUTTON2) == HIGH)
   {
-    g_bIKMode = IKM_BACKHOE;
+    g_bIKMode = IKM_IK3D_CARTESIAN;
   }
 
 

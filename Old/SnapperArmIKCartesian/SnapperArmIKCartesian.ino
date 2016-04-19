@@ -85,7 +85,7 @@
 //The Parralle gripper has a full robotgeek servo and paralle rails
 //Uncomment one of the following lines depending on which gripper you are using.
 //#define GRIPPER_TYPE ROBOT_GEEK_9G_GRIPPER
-//#define GRIPPER_TYPE ROBOT_GEEK_PARALLEL_GRIPPER
+#define GRIPPER_TYPE ROBOT_GEEK_PARALLEL_GRIPPER
 
 #ifndef GRIPPER_TYPE
    #error YOU HAVE TO SELECT THE GRIPPER YOU ARE USING! Uncomment the correct line above for your gripper
@@ -125,38 +125,13 @@ void setup(){
   Serial.println("Starting RobotGeek Analog IK Demo");
   delay(500);
   
-  AnalogControlLoop();
+//  AnalogControlLoop();
 }
 
-
+int i = 20;
 void loop(){
+circle(i--);
 
-  //use digitalRead to store the current state of the pushbutton in one of the 'buttonState' variables
-  buttonState1 = digitalRead(BUTTON1);
-  buttonState2 = digitalRead(BUTTON2);
-
-  if (buttonState1 == HIGH) 
-  {     
-    AnalogControlLoop();     
-  } 
-  if (buttonState2 == HIGH) 
-  { 
-    SequenceLoop(); 
-  }
-
-  int inByte = Serial.read();
-
-  switch (inByte) {
-
-  case '1':    
-    AnalogControlLoop();
-    break;    
-
-  case '2':
-    SequenceLoop(); 
-    break;
-
-  }
 }
 
 

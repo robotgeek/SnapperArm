@@ -205,17 +205,20 @@ void line()
     }
 }
  
-void circle()
+void circle(int radius)
 {
   #define RADIUS 20.0
   //float angle = 0;
-  float zaxis,yaxis;
+  float xaxis,yaxis;
   for(float angle = 0.0; angle < 360.0; angle += 1.0){
-      yaxis = RADIUS * sin(radians(angle)) + 150;
-      zaxis = RADIUS * cos(radians(angle)) + 150;
-      doArmIK(true, 0, yaxis, zaxis, 0);
+      yaxis = radius * sin(radians(angle)) + 150;
+      xaxis = radius * cos(radians(angle)) ;
+      doArmIK(true, xaxis, yaxis, 100, 0);
+      sGrip = 1000;
+          MoveArmTo(sBase, sShoulder, sElbow, sWrist, sWristRot, sGrip, sDeltaTime, true);
+
       SetServo(0);
-      delay(5);
+      delay(10);
   }
 }
 
