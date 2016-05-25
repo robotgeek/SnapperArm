@@ -195,6 +195,10 @@ void MoveArmToHome(void) {
 //    g_bIKStatus = IKS_SUCCESS;  // assume sucess soe we will continue to move...
 //    MoveArmTo(2048, 2048, 2048, 2048, 512, 256, 2000, true);
 //  }
+
+  Serial.print("Moving to home in");
+  Serial.print(g_bIKMode);
+  Serial.println(" mode");
 }
 
 

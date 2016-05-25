@@ -7,6 +7,7 @@
 
 extern ServoEx    ArmServo[5];
 extern Commander command ;
+extern int speedMod;
 
 //=============================================================================
 // Global Variables...
@@ -27,6 +28,7 @@ uint8_t  g_bIKStatus = IKS_SUCCESS;   // Status of last call to DoArmIK;;
 int buttonState1 = LOW;         
 int buttonState2 = LOW;            
 boolean   loopbreak = LOW;
+
 
 //////////////////////////////////////////////////////////////////////////////
 // ANALOG INPUT CONFIG  // 
@@ -61,6 +63,17 @@ float joyGripperMapped = 0;   //gripper knob  value, mapped from 1-1023 to GRIPP
 float spd = 1.00;  //speed modififer, increase this to increase the speed of the movement
 int delayTime = 5; //milliseocnds to delay in each processAnalog function - reduce this to get full speed from the arm
 
+
+int IKXChange;
+int IKYChange;
+int IKZChange;
+int baseChange;
+int shoulderChange;
+int elbowChange;
+int wristChange;
+int gripperChange;
+
+
 float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -73,6 +86,7 @@ float mapfloat(float x, float in_min, float in_max, float out_min, float out_max
 //===================================================================================================
 // ProcessUserInput3D: Process the Userinput when we are in 3d Mode
 //===================================================================================================
+
 boolean ProcessUserInput3D(void) {
   // We Are in IK mode, so figure out what position we would like the Arm to move to.
   // We have the Coordinates system like:
@@ -84,29 +98,25 @@ boolean ProcessUserInput3D(void) {
   //                |
   //                |
   //
-  boolean fChanged = false;
-
-
-    sIKX = min(max(sIKX + command.walkH/10, IK_MIN_X), IK_MAX_X);
-    sIKY = min(max(sIKY + command.walkV/10, IK_MIN_Y), IK_MAX_Y);
-    sIKZ = min(max(sIKZ + command.lookV/15, IK_MIN_Z), IK_MAX_Z);
-      if (command.buttons & BUT_LT) 
-      {
-        sIKGA = min(max(sIKGA + command.lookH/30, IK_MIN_GA), IK_MAX_GA);  // Currently in Servo coords...
-      }
-      else 
-      {
-      sIKGA = min(max(sIKGA, IK_MIN_GA), IK_MAX_GA);  // Currently in Servo coords...    
-      }
-    
-
-
-  fChanged = (sIKX != g_sIKX) || (sIKY != g_sIKY) || (sIKZ != g_sIKZ) || (sIKGA != g_sIKGA) ;
-
-  if (fChanged) {
-    g_bIKStatus = doArmIK(true, sIKX, sIKY, sIKZ, sIKGA);
+ if(command.buttons & BUT_LT)
+  {
+   IKXChange = 0;
+   IKYChange = 0;
+   IKZChange = 0;
+   wristChange = 0;
+   gripperChange = command.lookV/(speedMod/2);
   }
-  return fChanged;
+  else
+  {  
+   IKXChange = command.walkH/speedMod;
+   IKYChange = command.walkV/speedMod;
+   IKZChange = command.lookV/speedMod;
+   wristChange = command.lookH/speedMod;
+   gripperChange = 0;
+  
+  }
+   
+
 }
 
 //===================================================================================================
@@ -124,34 +134,28 @@ boolean ProcessUserInputCylindrical() {
   //                |
   //
   boolean fChanged = false;
+
+  if(command.buttons & BUT_LT)
+  {
+   baseChange = 0;
+   IKYChange = 0;
+   IKZChange = 0;
+   wristChange = 0;
+   gripperChange = command.lookV/(speedMod/2);
+  }
+  else
+  {  
+   baseChange = command.walkH/(speedMod/2);
+   IKYChange = command.walkV/speedMod;
+   IKZChange = command.lookV/speedMod;
+   wristChange = command.lookH/speedMod;
+   gripperChange = 0;
   
-
-
-  // The base rotate is real simple, just allow it to rotate in the min/max range...
-  sBase = min(max(g_sBase - command.walkH/10, BASE_MIN), BASE_MAX);
-
-  // Limit how far we can go by checking the status of the last move.  If we are in a warning or error
-  // condition, don't allow the arm to move farther away...
-  // Use Y for 2d distance from base
-  if ((g_bIKStatus == IKS_SUCCESS) || ((g_sIKY > 0) && (command.walkV < 0)) || ((g_sIKY < 0) && (command.walkV > 0)))
-    sIKY += command.walkV/10;
-
-  // Now Z coordinate...
-  if ((g_bIKStatus == IKS_SUCCESS) || ((g_sIKZ > 0) && (command.lookV < 0)) || ((g_sIKZ < 0) && (command.lookV > 0)))
-    sIKZ += command.lookV/15;
-
-  // And gripper angle.  May leave in Min/Max here for other reasons...   
-  if (command.buttons & BUT_LT) {
-  if ((g_bIKStatus == IKS_SUCCESS) || ((g_sIKGA > 0) && (command.lookH < 0)) || ((g_sIKGA < 0) && (command.lookH > 0)))
-    sIKGA = min(max(sIKGA + command.lookH/30, IK_MIN_GA), IK_MAX_GA);  // Currently in Servo coords...
   }
 
-  fChanged = (sBase != g_sBase) || (sIKY != g_sIKY) || (sIKZ != g_sIKZ) || (sIKGA != g_sIKGA) ;
 
-  if (fChanged) {
-    g_bIKStatus = doArmIK(false, sBase, sIKY, sIKZ, sIKGA);
-  }
-  return fChanged;
+
+
 }
 
 
@@ -159,31 +163,88 @@ boolean ProcessUserInputCylindrical() {
 // ProcessAnalogBackHoe
 //===================================================================================================
 boolean ProcessUserInputBackHoe() {
-  // lets update positions with the 4 joystick values
-  // First the base
-  boolean fChanged = false;
-  sBase = min(max(g_sBase - command.walkH/6, BASE_MIN), BASE_MAX);
-  if (sBase != g_sBase)
-    fChanged = true;
+  
+  if(command.buttons & BUT_LT)
+  {
+   baseChange = 0;
+   elbowChange = 0;
+   shoulderChange = 0;
+   wristChange = 0;
+   gripperChange = command.lookV/(speedMod/2);
+  }
+ 
+  else
+  {  
+   baseChange = command.walkH/(speedMod/2);
+   elbowChange = command.walkV/(speedMod/2);
+   shoulderChange = command.lookV/(speedMod/2);
+   wristChange = command.lookH/(speedMod/2);
+   gripperChange = 0;
+  
+  }
+   
 
-  // Now the Boom
-  sShoulder = min(max(g_sShoulder + command.lookV/6, SHOULDER_MIN), SHOULDER_MAX);
-  if (sShoulder != g_sShoulder)
-    fChanged = true;
 
-  // Now the Dipper 
-  sElbow = min(max(g_sElbow + command.walkV/6, ELBOW_MIN), ELBOW_MAX);
-  if (sElbow != g_sElbow)
-    fChanged = true;
-
-  // Bucket Curl
-  sWrist = min(max(g_sWrist + command.lookH/6, WRIST_MIN), WRIST_MAX);
-  if (sWrist != g_sWrist)
-    fChanged = true;
-  return fChanged;
+  
+  
 }
 
 
+
+
+
+boolean updateServoPositions()
+{
+
+  boolean fChanged = false;
+  
+ switch (g_bIKMode) 
+        {
+          case IKM_IK3D_CARTESIAN:
+            sIKX = constrain(sIKX + IKXChange, IK_MIN_X, IK_MAX_X);
+            sIKY = constrain(sIKY + IKYChange, IK_MIN_Y, IK_MAX_Y);
+            sIKZ = constrain(sIKZ + IKZChange, IK_MIN_Z, IK_MAX_Z);
+            sIKGA = constrain(sIKGA + wristChange, IK_MIN_GA, IK_MAX_GA);
+            sGrip = constrain(sGrip + gripperChange, GRIPPER_MIN, GRIPPER_MAX);
+            
+            fChanged = (sIKX != g_sIKX) || (sIKY != g_sIKY) || (sIKZ != g_sIKZ) || (sIKGA != g_sIKGA) ;
+            if (fChanged) 
+            {
+              g_bIKStatus = doArmIK(true, sIKX, sIKY, sIKZ, sIKGA);
+            }
+
+
+            break;
+            
+          case IKM_CYLINDRICAL:
+            sBase = constrain(sBase + baseChange, BASE_MIN, BASE_MAX);
+            sIKY = constrain(sIKY + IKYChange, IK_MIN_Y, IK_MAX_Y);
+            sIKZ = constrain(sIKZ + IKZChange, IK_MIN_Z, IK_MAX_Z);
+            sIKGA = constrain(sIKGA + wristChange, IK_MIN_GA, IK_MAX_GA);
+            sGrip = constrain(sGrip + gripperChange, GRIPPER_MIN, GRIPPER_MAX);
+
+            fChanged = (sBase != g_sBase) || (sIKY != g_sIKY) || (sIKZ != g_sIKZ) || (sIKGA != g_sIKGA) ;
+            if (fChanged) 
+            {
+              g_bIKStatus = doArmIK(false, sBase, sIKY, sIKZ, sIKGA);
+            }
+              
+            break;
+
+          case IKM_BACKHOE:
+            sBase = constrain(sBase + baseChange, BASE_MIN, BASE_MAX);
+            sShoulder = constrain(sShoulder + shoulderChange, SHOULDER_MIN, SHOULDER_MAX);
+            sElbow = constrain(sElbow + elbowChange, ELBOW_MIN, ELBOW_MAX);
+            sWrist = constrain(sWrist + wristChange, WRIST_MIN, WRIST_MAX);
+            sGrip = constrain(sGrip + gripperChange, GRIPPER_MIN, GRIPPER_MAX);
+            
+            break;
+        }
+
+
+
+  
+}
 
 //===================================================================================================
 // SetServo: Writes Servo Position Solutions

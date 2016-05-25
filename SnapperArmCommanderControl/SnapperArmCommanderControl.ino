@@ -1,92 +1,92 @@
 /***********************************************************************************
- *  }--\     RobotGeek Snapper Robotic Arm     /--{
- *      |       Analog IK Control Code        |
- *   __/                                       \__
- *  |__|                                       |__|
- *
- *
- *  The following sketch will move allow you to contro the Snapper Robot Arm using
- *  joysticks and a knob. 
- *  
- *  By setting the control mode you can control the arm in joint/backhoe mode, 
- *  Cartesian IK or Cylindric
- * the arm to an X/Y/Z coordinate based on the inputs
- *  from the analog inputs (joysticks and knob). This sketch can also be used to play
- *  back a pre-programmed sequence.
- *
- *  Snapper Arm Getting Started Guide
- *   http://learn.robotgeek.com/getting-started/33-robotgeek-snapper-robot-arm/63-robotgeek-snapper-arm-getting-started-guide.html
- *  Using the IK Firmware
- *    http://learn.robotgeek.com/demo-code/demo-code/154-robotgeek-snapper-joystick-inverse-kinematics-demo.html
- *
- *
- *  WIRING
- *    Servos
- *      Digital I/O 3 - Base Rotation - Robot Geek Servo 
- *      Digital I/O 5 - Shoulder Joint - Robot Geek Servo 
- *      Digital I/O 6 - Elbow Joint - Robot Geek Servo 
- *      Digital I/O 9 - Wrist Joint - Robot Geek Servo 
- *      Digital I/O 10 - Gripper Servo - 9g Servo 
- *
- *    Analog Inputs
- *      Analog 0 - Joystick (Horizontal)
- *      Analog 1 - Joystick (Vertical)
- *      Analog 2 - Joystick (Vertical)
- *      Analog 3 - Joystick (Vertical)
- *      Analog 4 - Rotation Knob 
- *      
- *    Digital Inputs
- *      Digital 2 - Button 1
- *      Digital 4 - Button 2
- *
- *  
- *    Use an external power supply and set both PWM jumpers to 'VIN'
- *
- *  CONTROL
- *      Analog 0 - Joystick - Control the Y Axis (forward/back)
- *      Analog 1 - Joystick - Control the X Axis (left/right)
- *      Analog 2 - Joystick - Control the Z Axis (up/down)
- *      Analog 3 - Joystick - Control the Wrist Angle
- *      Analog 4 - Rotation Knob - Control the Gripper
- *    http://learn.robotgeek.com/demo-code/demo-code/154-robotgeek-snapper-joystick-inverse-kinematics-demo.html
- *
- *
- *
- *  NOTES
- *
- *    SERVO POSITIONS
- *      The servos' positions will be tracked in microseconds, and written to the servos
- *      using .writeMicroseconds()
- *        http://arduino.cc/en/Reference/ServoWriteMicroseconds
- *      For RobotGeek servos, 600ms corresponds to fully counter-clockwise while
- *      2400ms corresponds to fully clock-wise. 1500ms represents the servo being centered 
- *
- *      For the 9g servo, 900ms corresponds to fully counter-clockwise while
- *      2100ms corresponds to fully clock-wise. 1500ms represents the servo being centered 
- *
- *
- *  This code is a Work In Progress and is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
- *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
- * Sources used:
- * https://github.com/KurtE
- * 
- * http://www.circuitsathome.com/mcu/robotic-arm-inverse-kinematics-on-arduino
- * 
- * Application Note 44 - Controlling a Lynx6 Robotic Arm 
- * http://www.micromegacorp.com/appnotes.html
- * http://www.micromegacorp.com/downloads/documentation/AN044-Robotic%20Arm.pdf
- * 
- * 
- *   This code is a Work In Progress and is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
- *   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
- *   
+    }--\     RobotGeek Snapper Robotic Arm     /--{
+        |       Analog IK Control Code        |
+     __/                                       \__
+    |__|                                       |__|
+
+
+    The following sketch will move allow you to contro the Snapper Robot Arm using
+    joysticks and a knob.
+
+    By setting the control mode you can control the arm in joint/backhoe mode,
+    Cartesian IK or Cylindric
+   the arm to an X/Y/Z coordinate based on the inputs
+    from the analog inputs (joysticks and knob). This sketch can also be used to play
+    back a pre-programmed sequence.
+
+    Snapper Arm Getting Started Guide
+     http://learn.robotgeek.com/getting-started/33-robotgeek-snapper-robot-arm/63-robotgeek-snapper-arm-getting-started-guide.html
+    Using the IK Firmware
+      http://learn.robotgeek.com/demo-code/demo-code/154-robotgeek-snapper-joystick-inverse-kinematics-demo.html
+
+
+    WIRING
+      Servos
+        Digital I/O 3 - Base Rotation - Robot Geek Servo
+        Digital I/O 5 - Shoulder Joint - Robot Geek Servo
+        Digital I/O 6 - Elbow Joint - Robot Geek Servo
+        Digital I/O 9 - Wrist Joint - Robot Geek Servo
+        Digital I/O 10 - Gripper Servo - 9g Servo
+
+      Analog Inputs
+        Analog 0 - Joystick (Horizontal)
+        Analog 1 - Joystick (Vertical)
+        Analog 2 - Joystick (Vertical)
+        Analog 3 - Joystick (Vertical)
+        Analog 4 - Rotation Knob
+
+      Digital Inputs
+        Digital 2 - Button 1
+        Digital 4 - Button 2
+
+
+      Use an external power supply and set both PWM jumpers to 'VIN'
+
+    CONTROL
+        Analog 0 - Joystick - Control the Y Axis (forward/back)
+        Analog 1 - Joystick - Control the X Axis (left/right)
+        Analog 2 - Joystick - Control the Z Axis (up/down)
+        Analog 3 - Joystick - Control the Wrist Angle
+        Analog 4 - Rotation Knob - Control the Gripper
+      http://learn.robotgeek.com/demo-code/demo-code/154-robotgeek-snapper-joystick-inverse-kinematics-demo.html
+
+
+
+    NOTES
+
+      SERVO POSITIONS
+        The servos' positions will be tracked in microseconds, and written to the servos
+        using .writeMicroseconds()
+          http://arduino.cc/en/Reference/ServoWriteMicroseconds
+        For RobotGeek servos, 600ms corresponds to fully counter-clockwise while
+        2400ms corresponds to fully clock-wise. 1500ms represents the servo being centered
+
+        For the 9g servo, 900ms corresponds to fully counter-clockwise while
+        2100ms corresponds to fully clock-wise. 1500ms represents the servo being centered
+
+
+    This code is a Work In Progress and is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+   Sources used:
+   https://github.com/KurtE
+
+   http://www.circuitsathome.com/mcu/robotic-arm-inverse-kinematics-on-arduino
+
+   Application Note 44 - Controlling a Lynx6 Robotic Arm
+   http://www.micromegacorp.com/appnotes.html
+   http://www.micromegacorp.com/downloads/documentation/AN044-Robotic%20Arm.pdf
+
+
+     This code is a Work In Progress and is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+
  ***********************************************************************************/
-#define DEFAULT_CONTROL_MODE  IKM_BACKHOE
-//#define DEFAULT_CONTROL_MODE  IKM_IK3D_CARTESIAN
+//#define DEFAULT_CONTROL_MODE  IKM_BACKHOE
+#define DEFAULT_CONTROL_MODE  IKM_IK3D_CARTESIAN
 //#define DEFAULT_CONTROL_MODE  IKM_CYLINDRICAL
-  
+
 
 #define ARBOTIX_TO  1000      // if no message for a second probably turned off...
 #define DEADZONE    3        // deadzone around center of joystick values
@@ -101,7 +101,7 @@
 #define GRIPPER_TYPE ROBOT_GEEK_PARALLEL_GRIPPER
 
 #ifndef GRIPPER_TYPE
-   #error YOU HAVE TO SELECT THE GRIPPER YOU ARE USING! Uncomment the correct line above for your gripper
+#error YOU HAVE TO SELECT THE GRIPPER YOU ARE USING! Uncomment the correct line above for your gripper
 #endif
 
 #include <ServoEx.h>
@@ -116,10 +116,15 @@ extern Commander command = Commander();
 unsigned long   ulLastMsgTime;          // Keep track of when the last message arrived to see if controller off
 byte            buttonsPrev;            // will use when we wish to only process a button press once
 
+ int speedMod = 10;
+
+unsigned long lastUpdateTime;
+int updateInterval = 33;
+
 //===========================================================================================
-// Setup 
+// Setup
 //===================================================================================================
-void setup(){
+void setup() {
   // Attach servo and set limits
   ArmServo[BAS_SERVO].attach(3, BASE_MIN, BASE_MAX);
   ArmServo[SHL_SERVO].attach(5, SHOULDER_MIN, SHOULDER_MAX);
@@ -130,9 +135,9 @@ void setup(){
 
 
 
-  pinMode(BUTTON1, INPUT);     
-  pinMode(BUTTON2, INPUT);      
-  pinMode(13, OUTPUT);       
+  pinMode(BUTTON1, INPUT);
+  pinMode(BUTTON2, INPUT);
+  pinMode(13, OUTPUT);
 
   g_bIKMode = DEFAULT_CONTROL_MODE;
 
@@ -140,16 +145,16 @@ void setup(){
 
 
 
-  if(g_bIKMode == IKM_IK3D_CARTESIAN)
+  if (g_bIKMode == IKM_IK3D_CARTESIAN)
   {
-    doArmIK(true, g_sIKX,g_sIKY,g_sIKZ,g_sIKGA);
-  } 
-  else if(g_bIKMode == IKM_CYLINDRICAL)
+    doArmIK(true, g_sIKX, g_sIKY, g_sIKZ, g_sIKGA);
+  }
+  else if (g_bIKMode == IKM_CYLINDRICAL)
   {
     sBase = 1500;
-    doArmIK(false, g_sBase,g_sIKY,g_sIKZ,g_sIKGA);
+    doArmIK(false, g_sBase, g_sIKY, g_sIKZ, g_sIKGA);
   }
-  else if(g_bIKMode == IKM_BACKHOE)
+  else if (g_bIKMode == IKM_BACKHOE)
   {
     sBase = 1500;
 
@@ -158,114 +163,136 @@ void setup(){
     sElbow = 1500;
 
     sWrist = 1500;
-    
+
   }
   MoveArmTo(sBase, sShoulder, sElbow, sWrist, sWristRot, sGrip, sDeltaTime, true);
   SetServo(0);
 
-  
 
 
 
 
 
-
-  // start serial
-  Serial.begin(9600);
-  Serial.println(" ");
-  Serial.println("Starting RobotGeek Analog IK Demo");
-  delay(500);
-  
 
   command.begin(38400);
+
+  // start serial
+  //Serial.begin(9600);
+  Serial.println(" ");
+  Serial.println("Starting RobotGeek Commander IK Demo");
+  delay(500);
+
+ pinMode(2, INPUT);
 }
 
 
-void loop() {
+void loop()
+{
   boolean fChanged = false;
-  if (command.ReadMsgs()) {
-    digitalWrite(13,HIGH-digitalRead(13));     
+  if (command.ReadMsgs())
+  {
+    digitalWrite(13, HIGH - digitalRead(13));
     // See if the Arm is active yet...
-  
+    if ((command.buttons & BUT_R1) && !(buttonsPrev & BUT_R1))
+    {
+            if (++g_bIKMode > IKM_BACKHOE)
+                g_bIKMode = 0;
 
+      // For now lets always move arm to the home position of the new input method...
+      // Later maybe we will get the current position and covert to the coordinate system
+      // of the current input method.
+      MoveArmToHome();
 
-      if ((command.buttons & BUT_R1) && !(buttonsPrev & BUT_R1)) {
-        if (++g_bIKMode > IKM_BACKHOE)
-          g_bIKMode = 0; 
+    }
+    else if ((command.buttons & BUT_R2) && !(buttonsPrev & BUT_R2))
+    {
+      MoveArmToHome();
+    }
 
-        // For now lets always move arm to the home position of the new input method...
-        // Later maybe we will get the current position and covert to the coordinate system
-        // of the current input method.
-        MoveArmToHome();      
+//    // Going to use L6 in combination with the right joystick to control both the gripper and the
+//    // wrist rotate...
+//    else if (command.buttons & BUT_L4)
+//    {
+//      speedMod = 1;
+//    }
+//
+//    else if (command.buttons & BUT_L5)
+//    {
+//      speedMod = 10;
+//    }
+//
+//    else if (command.buttons & BUT_L6)
+//    {
+//      speedMod = 10;
+//    }
 
-      }
-      else if ((command.buttons & BUT_R2) && !(buttonsPrev & BUT_R2)) 
+    else
+    {
+      switch (g_bIKMode)
       {
-        MoveArmToHome();      
+        case IKM_IK3D_CARTESIAN:
+          fChanged |= ProcessUserInput3D();
+          break;
+        case IKM_CYLINDRICAL:
+          fChanged |= ProcessUserInputCylindrical();
+          break;
+
+        case IKM_BACKHOE:
+          fChanged |= ProcessUserInputBackHoe();
+          break;
       }
-
-      // Going to use L6 in combination with the right joystick to control both the gripper and the 
-      // wrist rotate...
-      else if (command.buttons & BUT_L6) 
-      {
-        sGrip = min(max(sGrip + command.lookV/5, GRIPPER_MIN), GRIPPER_MAX);
-
-        fChanged = (sGrip != g_sGrip) || (sWristRot != g_sWristRot);
-      }
+    }
 
 
+
+
+     if (command.buttons & BUT_LT)
+    {
+      digitalWrite(2, HIGH);
+    }
+    else
+    {
       
-      else 
-      {
-        switch (g_bIKMode) 
-        {
-          case IKM_IK3D_CARTESIAN:
-            fChanged |= ProcessUserInput3D();
-            break;
-          case IKM_CYLINDRICAL:
-            fChanged |= ProcessUserInputCylindrical();
-            break;
-
-          case IKM_BACKHOE:
-            fChanged |= ProcessUserInputBackHoe();
-            break;
-        }
-      }
-      // If something changed and we are not in an error condition
-      //if (fChanged && (g_bIKStatus != IKS_ERROR)) {
-        MoveArmTo(sBase, sShoulder, sElbow, sWrist, sWristRot, sGrip, sDeltaTime, true);
-        SetServo(0);
-      //}
+      digitalWrite(2, LOW);
+    }
 
 
-      // else if (bioloid.interpolating > 0) {
-      //   bioloid.interpolateStep();
-      // }
+    // else if (bioloid.interpolating > 0) {
+    //   bioloid.interpolateStep();
+    // }
 
 
     buttonsPrev = command.buttons;
     ulLastMsgTime = millis();    // remember when we last got a message...
   }
-  else {
-    // if (bioloid.interpolating > 0) {
-    //   bioloid.interpolateStep();
-    // }
-    // error see if we exceeded a timeout
-    if (g_fArmActive && ((millis() - ulLastMsgTime) > ARBOTIX_TO)) {
-      //PutArmToSleep();
-    }
+  else
+  {
   }
-} 
+
+
+  //update the servos regularly with the proper pan and tilt increments
+  if (millis() - lastUpdateTime > updateInterval)
+  {
+    updateServoPositions();
+    MoveArmTo(sBase, sShoulder, sElbow, sWrist, sWristRot, sGrip, sDeltaTime, true);
+    SetServo(0);
+
+    lastUpdateTime = millis();
+  }
 
 
 
-void MenuOptions(){
+}
 
-  Serial.println("###########################"); 
-  Serial.println("Please enter option 1-2, or press Button 1 or 2 respectively"); 
-  Serial.println("1) Start Analog IK Control Mode");        
-//  Serial.println("2) Start Preprogrammed Sequence Mode");     
-  Serial.println("###########################"); 
+
+
+void MenuOptions() {
+
+  Serial.println("###########################");
+  Serial.println("Please enter option 1-2, or press Button 1 or 2 respectively");
+  Serial.println("1) Start Analog IK Control Mode");
+  //  Serial.println("2) Start Preprogrammed Sequence Mode");
+  Serial.println("###########################");
 }
 
 
