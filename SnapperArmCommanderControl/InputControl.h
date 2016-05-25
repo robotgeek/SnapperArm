@@ -104,7 +104,7 @@ boolean ProcessUserInput3D(void) {
    IKYChange = 0;
    IKZChange = 0;
    wristChange = 0;
-   gripperChange = command.lookV/(speedMod/2);
+   gripperChange = command.lookV/(speedMod/2) + command.walkV/(speedMod/10);
   }
   else
   {  
@@ -176,8 +176,8 @@ boolean ProcessUserInputBackHoe() {
   else
   {  
    baseChange = command.walkH/(speedMod/2);
-   elbowChange = command.walkV/(speedMod/2);
-   shoulderChange = command.lookV/(speedMod/2);
+   elbowChange = command.lookV/(speedMod/2);
+   shoulderChange = command.walkV/(speedMod/2);
    wristChange = command.lookH/(speedMod/2);
    gripperChange = 0;
   
@@ -217,7 +217,7 @@ boolean updateServoPositions()
             break;
             
           case IKM_CYLINDRICAL:
-            sBase = constrain(sBase + baseChange, BASE_MIN, BASE_MAX);
+            sBase = constrain(sBase - baseChange, BASE_MIN, BASE_MAX);
             sIKY = constrain(sIKY + IKYChange, IK_MIN_Y, IK_MAX_Y);
             sIKZ = constrain(sIKZ + IKZChange, IK_MIN_Z, IK_MAX_Z);
             sIKGA = constrain(sIKGA + wristChange, IK_MIN_GA, IK_MAX_GA);
@@ -232,8 +232,8 @@ boolean updateServoPositions()
             break;
 
           case IKM_BACKHOE:
-            sBase = constrain(sBase + baseChange, BASE_MIN, BASE_MAX);
-            sShoulder = constrain(sShoulder + shoulderChange, SHOULDER_MIN, SHOULDER_MAX);
+            sBase = constrain(sBase - baseChange, BASE_MIN, BASE_MAX);
+            sShoulder = constrain(sShoulder - shoulderChange, SHOULDER_MIN, SHOULDER_MAX);
             sElbow = constrain(sElbow + elbowChange, ELBOW_MIN, ELBOW_MAX);
             sWrist = constrain(sWrist + wristChange, WRIST_MIN, WRIST_MAX);
             sGrip = constrain(sGrip + gripperChange, GRIPPER_MIN, GRIPPER_MAX);

@@ -25,10 +25,13 @@
 #define IK_MIN_X  -150
 
 #define IK_MAX_Y  200
-#define IK_MIN_Y  50
+#define IK_MIN_Y  150 //limited range
+//#define IK_MIN_Y  50 //full range
 
-#define IK_MAX_Z  225
-#define IK_MIN_Z  20
+#define IK_MAX_Z  175 //limited range
+//#define IK_MAX_Z  225 //full range
+#define IK_MIN_Z  20  //limited range
+//#define IK_MIN_Z  60  //full range
 
 #define IK_MAX_GA  30
 #define IK_MIN_GA  -30

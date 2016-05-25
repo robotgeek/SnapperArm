@@ -138,6 +138,8 @@ void setup() {
   pinMode(BUTTON1, INPUT);
   pinMode(BUTTON2, INPUT);
   pinMode(13, OUTPUT);
+  pinMode(2, OUTPUT);
+  pinMode(4, OUTPUT);
 
   g_bIKMode = DEFAULT_CONTROL_MODE;
 
@@ -179,10 +181,10 @@ void setup() {
   // start serial
   //Serial.begin(9600);
   Serial.println(" ");
-  Serial.println("Starting RobotGeek Commander IK Demo");
+  Serial.println("Starting RobotGeek Snapper Commander IK Demo");
   delay(500);
 
- pinMode(2, INPUT);
+
 }
 
 
@@ -193,20 +195,43 @@ void loop()
   {
     digitalWrite(13, HIGH - digitalRead(13));
     // See if the Arm is active yet...
-    if ((command.buttons & BUT_R1) && !(buttonsPrev & BUT_R1))
+    if ((command.buttons & BUT_R1) == (0xff & BUT_R1) )
     {
-            if (++g_bIKMode > IKM_BACKHOE)
-                g_bIKMode = 0;
+      if((buttonsPrev & BUT_R1) != (0xff & BUT_R1))
+      {
+                g_bIKMode = IKM_IK3D_CARTESIAN;//xyz
+                // For now lets always move arm to the home position of the new input method...
+                // Later maybe we will get the current position and covert to the coordinate system
+                // of the current input method.
+                MoveArmToHome();
+                  
+      }
 
-      // For now lets always move arm to the home position of the new input method...
-      // Later maybe we will get the current position and covert to the coordinate system
-      // of the current input method.
-      MoveArmToHome();
 
     }
-    else if ((command.buttons & BUT_R2) && !(buttonsPrev & BUT_R2))
+    else if ((command.buttons & BUT_R2) == (0xff & BUT_R2))
     {
-      MoveArmToHome();
+      if(!(buttonsPrev & BUT_R2)!= (0xff & BUT_R2))
+      {
+                g_bIKMode = IKM_CYLINDRICAL;//cylindrical
+                // For now lets always move arm to the home position of the new input method...
+                // Later maybe we will get the current position and covert to the coordinate system
+                // of the current input method.
+                MoveArmToHome();
+                  
+      }
+    }
+    else if ((command.buttons & BUT_R3) == (0xff & BUT_R3) )
+    {
+      if(!(buttonsPrev & BUT_R3) != (0xff & BUT_R3))
+      {
+                g_bIKMode = IKM_BACKHOE;//backhoe
+                // For now lets always move arm to the home position of the new input method...
+                // Later maybe we will get the current position and covert to the coordinate system
+                // of the current input method.
+                MoveArmToHome();
+                  
+      }
     }
 
 //    // Going to use L6 in combination with the right joystick to control both the gripper and the
@@ -246,7 +271,7 @@ void loop()
 
 
 
-     if (command.buttons & BUT_LT)
+     if (command.buttons & BUT_RT)
     {
       digitalWrite(2, HIGH);
     }
@@ -254,6 +279,17 @@ void loop()
     {
       
       digitalWrite(2, LOW);
+    }
+
+
+     if (command.buttons & BUT_LT)
+    {
+      digitalWrite(4, HIGH);
+    }
+    else
+    {
+      
+      digitalWrite(4, LOW);
     }
 
 
