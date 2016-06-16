@@ -46,7 +46,7 @@
 #include <ServoEx.h>
 
 // instantiate array to hold servo objects (0-4 for 5 servos total)
-ServoEx    ArmServo[4];
+ServoEx    ArmServo[5];
 
 //////////////////////////////////////////////////////////////////////////////
 // SERVO CONFIG  //
@@ -62,7 +62,7 @@ enum {
 //The Parralle gripper has a full robotgeek servo and paralle rails
 //Uncomment one of the following lines depending on which gripper you are using.
 //#define GRIPPER_TYPE ROBOT_GEEK_9G_GRIPPER
-//#define GRIPPER_TYPE ROBOT_GEEK_PARALLEL_GRIPPER
+#define GRIPPER_TYPE ROBOT_GEEK_PARALLEL_GRIPPER
 
 #ifndef GRIPPER_TYPE
    #error YOU HAVE TO SELECT THE GRIPPER YOU ARE USING! Uncomment the correct line above for your gripper
@@ -109,6 +109,8 @@ int time  =1000;
  
 
 void setup(){
+Serial.begin(9600);
+Serial.println("sss setup");
   // Attach servo and set limits
   ArmServo[BAS_SERVO].attach(3, BASE_MIN, BASE_MAX);
   ArmServo[SHL_SERVO].attach(5, SHOULDER_MIN, SHOULDER_MAX);
@@ -120,7 +122,7 @@ void setup(){
   // 
   SetServo(time);
   delay(time);
-
+Serial.println("fins setup");
 }
  
 void loop(){
