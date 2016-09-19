@@ -37,9 +37,8 @@ boolean   loopbreak = LOW;
 #define ANALOGGA      3  //connected to Vertical Axis on Joystick # 4
 #define ANALOGGRIP    4  //connected to Rotation Knob / Potentiometer # 1
 
-//generic deadband limits - not all joystics will center at 512, so these limits remove 'drift' from joysticks that are off-center.
-#define DEADBANDLOW 492   //decrease this value if drift occurs, increase it to increase sensitivity around the center position
-#define DEADBANDHIGH 532  //increase this value if drift occurs, decrease it to increase sensitivity around the center position
+//deadband value - not all joystics will center at 512, so this value removes 'positional-drift' caused from joysticks that are off-center.
+#define DEADBAND 55 //Increase this value if positional drift occurs with no human input
 
  //last read values of analog sensors (Native values, 0-1023)
 int joyXVal = 0;     //present value of the base rotation knob (analog 0)
@@ -65,6 +64,25 @@ float mapfloat(float x, float in_min, float in_max, float out_min, float out_max
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+int DeadBand( int p_deadband, int p_value )
+{
+  if ( p_value > 0 )
+  {
+    if ( p_value - p_deadband > 0 )
+    {
+      return p_value - p_deadband;
+    }
+    else return 0;
+  }
+  else if ( p_value < 0 )
+  {
+    if ( p_value + p_deadband < 0 )
+    {
+      return p_value + p_deadband;
+    } else return 0;
+  }
+  return 0;
+}
 //////////////////////////////////////////////////////////////////////////////
 
 
@@ -77,44 +95,44 @@ boolean ProcessAnalogInput3D(void) {
     boolean fChanged = false;
     
     //read analog values from analog sensors
-   joyXVal = analogRead(ANALOGX);
-   joyYVal = analogRead(ANALOGY);
-   joyZVal = analogRead(ANALOGZ);
-   joyGAVal = analogRead(ANALOGGA);
+   joyXVal = analogRead(ANALOGX) - 512;
+   joyYVal = analogRead(ANALOGY) - 512;
+   joyZVal = analogRead(ANALOGZ) - 512;
+   joyGAVal = analogRead(ANALOGGA) - 512;
    joyGripperVal = analogRead(ANALOGGRIP);
    delay(delayTime);  //slow down the readings - remove
 
 
-   //only update the base joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyXVal > DEADBANDHIGH || joyXVal < DEADBANDLOW)
+   joyXVal = DeadBand( DEADBAND, joyXVal );
+   if ( joyXVal != 0 )
    {
-     joyXMapped = mapfloat(joyXVal, 0, 1023, -spd, spd); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyXMapped = mapfloat(joyXVal, -512, 511, -spd, spd); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sIKX -= joyXMapped;
    }
-
-   //only update the shoulder joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyYVal > DEADBANDHIGH || joyYVal < DEADBANDLOW)
+   
+   joyYVal = DeadBand( DEADBAND, joyYVal );
+   if ( joyYVal != 0 )
    {
-     joyYMapped = mapfloat(joyYVal, 0, 1023, -spd, spd); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyYMapped = mapfloat(joyYVal, -512, 511, -spd, spd); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sIKY -= joyYMapped;
    }
-
-   //only update the elbow joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyZVal > DEADBANDHIGH || joyZVal < DEADBANDLOW)
+   
+   joyZVal = DeadBand( DEADBAND, joyZVal );
+   if ( joyZVal != 0 )
    {
-     joyZMapped = mapfloat(joyZVal, 0, 1023, -spd, spd); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyZMapped = mapfloat(joyZVal, -512, 511, -spd, spd); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sIKZ -= joyZMapped;
    }
    
-   //only update the wrist joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyGAVal > DEADBANDHIGH || joyGAVal < DEADBANDLOW)
+   joyGAVal = DeadBand( DEADBAND, joyGAVal );
+   if ( joyGAVal != 0 )
    {
-     joyGAMapped = mapfloat(joyGAVal, 0, 1023, -spd, spd); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyGAMapped = mapfloat(joyGAVal, -512, 511, -spd, spd); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sIKGA += joyGAMapped;
    }
-     
+   
    //Mapping analog joystick value to servo PWM signal range
-   joyGripperMapped = mapfloat(joyGripperVal, 0, 1023, GRIPPER_MIN, GRIPPER_MAX);
+   joyGripperMapped = mapfloat(joyGripperVal, 0, 1023, GRIPPER_MAX, GRIPPER_MIN);
    sGrip = joyGripperMapped;//set servo position variable to the mapped value from the knob
 
    
@@ -177,42 +195,44 @@ boolean ProcessAnalogInputCylindrical(void) {
     boolean fChanged = false;
     
     //read analog values from analog sensors
-   joyXVal = analogRead(ANALOGX);
-   joyYVal = analogRead(ANALOGY);
-   joyZVal = analogRead(ANALOGZ);
-   joyGAVal = analogRead(ANALOGGA);
+   joyXVal = analogRead(ANALOGX) - 512;
+   joyYVal = analogRead(ANALOGY) - 512;
+   joyZVal = analogRead(ANALOGZ) - 512;
+   joyGAVal = analogRead(ANALOGGA) - 512;
    joyGripperVal = analogRead(ANALOGGRIP);
    delay(delayTime);
-   //only update the base joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyXVal > DEADBANDHIGH || joyXVal < DEADBANDLOW)
+
+   joyXVal = DeadBand( DEADBAND, joyXVal );
+   if ( joyXVal != 0 )
    {
-     joyXMapped = mapfloat(joyXVal, 0, 1023,  -spd * 10 , spd * 10); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyXMapped = mapfloat(joyXVal, -512, 511, -spd * 10, spd * 10); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sBase += joyXMapped;
    }
 
-   //only update the shoulder joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyYVal > DEADBANDHIGH || joyYVal < DEADBANDLOW)
+    //only update the shoulder joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
+   joyYVal = DeadBand( DEADBAND, joyYVal );
+   if ( joyYVal != 0 )
    {
-     joyYMapped = mapfloat(joyYVal, 0, 1023, -spd, spd); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyYMapped = mapfloat(joyYVal, -512, 511, -spd, spd); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sIKY -= joyYMapped;
    }
-
-   //only update the elbow joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyZVal > DEADBANDHIGH || joyZVal < DEADBANDLOW)
+   
+   joyZVal = DeadBand( DEADBAND, joyZVal );
+   if ( joyZVal != 0 )
    {
-     joyZMapped = mapfloat(joyZVal, 0, 1023, -spd, spd); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyZMapped = mapfloat(joyZVal, -512, 511, -spd, spd); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sIKZ -= joyZMapped;
    }
-   
-   //only update the wrist joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyGAVal > DEADBANDHIGH || joyGAVal < DEADBANDLOW)
+
+   joyGAVal = DeadBand( DEADBAND, joyGAVal );
+   if ( joyGAVal != 0 )
    {
-     joyGAMapped = mapfloat(joyGAVal, 0, 1023, -spd, spd); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
+     joyGAMapped = mapfloat(joyGAVal, -512, 511, -spd, spd); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
      sIKGA += joyGAMapped;
    }
      
    //Mapping analog joystick value to servo PWM signal range
-   joyGripperMapped = mapfloat(joyGripperVal, 0, 1023, GRIPPER_MIN, GRIPPER_MAX);
+   joyGripperMapped = mapfloat(joyGripperVal, 0, 1023, GRIPPER_MAX, GRIPPER_MIN);
    sGrip = joyGripperMapped;//set servo position variable to the mapped value from the knob
 
    
@@ -249,51 +269,45 @@ boolean ProcessAnalogBackhoe() {
   
     boolean fChanged = false;
    //read analog values from analog sensors
-   joyXVal = analogRead(ANALOGX);
-   joyYVal = analogRead(ANALOGY);
-   joyZVal = analogRead(ANALOGZ);
-   joyGAVal = analogRead(ANALOGGA);
+   joyXVal = analogRead(ANALOGX) - 512;
+   joyYVal = analogRead(ANALOGY) - 512;
+   joyZVal = analogRead(ANALOGZ) - 512;
+   joyGAVal = analogRead(ANALOGGA) - 512;
    joyGripperVal = analogRead(ANALOGGRIP);
    delay(delayTime);
 
 
-   //only update the base joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyXVal > DEADBANDHIGH || joyXVal < DEADBANDLOW)
+   joyXVal = DeadBand( DEADBAND, joyXVal );
+   if ( joyXVal != 0 )
    {
-     joyXMapped = mapfloat(joyXVal, 0, 1023, -spd * 10, spd * 10); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
-     sBase += joyXMapped; //add mapped base joystick value to present Base Value (positive values of joyBaseMapped will increase the position, negative values will decrease the position)
-
-
-   }
-
-
-
-   //only update the shoulder joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyYVal > DEADBANDHIGH || joyYVal < DEADBANDLOW)
-   {
-     joyYMapped = mapfloat(joyYVal, 0, 1023, -spd * 10, spd * 10); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
-     sShoulder -= joyYMapped; //add mapped shoulder joystick value to present Shoulder Value (positive values of joyShoulderMapped will increase the position, negative values will decrease the position)
-   }
-
-   //only update the elbow joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyZVal > DEADBANDHIGH || joyZVal < DEADBANDLOW)
-   {
-     joyZMapped = mapfloat(joyZVal, 0, 1023, -spd * 10, spd * 10); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
-     sElbow -= joyZMapped;//add mapped elbow joystick value to present elbow Value (positive values of joyElbowMapped will increase the position, negative values will decrease the position)
+     joyXMapped = mapfloat(joyXVal, -512, 511, -spd * 10, spd * 10); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
+     sBase += joyXMapped;
    }
    
-
-   //only update the wrist joint if the joystick is outside the deadzone (i.e. moved oustide the center position)
-   if(joyGAVal > DEADBANDHIGH || joyGAVal < DEADBANDLOW)
+   joyYVal = DeadBand( DEADBAND, joyYVal );
+   if ( joyYVal != 0 )
    {
-     joyGAMapped = mapfloat(joyGAVal, 0, 1023, -spd * 10, spd * 10); //Map analog value from native joystick value (0 to 1023) to incremental change (-spd to spd)
-     sWrist -= joyGAMapped;//add mapped wrist joystick value to present wrist Value (positive values of joyWristMapped will increase the position, negative values will decrease the position)
+     joyYMapped = mapfloat(joyYVal, -512, 511, -spd * 10, spd * 10); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
+     sShoulder += joyYMapped;
    }
    
+   joyZVal = DeadBand( DEADBAND, joyZVal );
+   if ( joyZVal != 0 )
+   {
+     joyZMapped = mapfloat(joyZVal, -512, 511, -spd * 10, spd * 10); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
+     sElbow -= joyZMapped;
+   }
+   
+   joyGAVal = DeadBand( DEADBAND, joyGAVal );
+   if ( joyGAVal != 0 )
+   {
+     joyGAMapped = mapfloat(joyGAVal, -512, 511, -spd * 10, spd * 10); //Map offset analog value (-512 to 511) to incremental change (-spd to spd)
+     sWrist -= joyGAMapped;
+   }
    
    //Mapping analog joystick value to servo PWM signal range
-   joyGripperMapped = mapfloat(joyGripperVal, 0, 1023, GRIPPER_MIN, GRIPPER_MAX);
-   sGrip = joyGripperMapped;//set servo position variable to the mapped value from the knob
+   joyGripperMapped = mapfloat(joyGripperVal, 0, 1023, GRIPPER_MAX, GRIPPER_MIN);
+   sGrip = joyGripperMapped; //set servo position variable to the mapped value from the knob
 
       
     //enforce upper/lower limits for servo position variable 
